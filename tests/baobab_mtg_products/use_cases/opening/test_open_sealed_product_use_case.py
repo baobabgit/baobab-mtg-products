@@ -4,6 +4,15 @@ from typing import Dict, List, Optional, Tuple
 
 import pytest
 
+from baobab_mtg_products.domain.integration.product_parent_link_for_collection_event import (
+    ProductParentLinkForCollectionEvent,
+)
+from baobab_mtg_products.domain.integration.product_provenance_for_collection import (
+    ProductProvenanceForCollection,
+)
+from baobab_mtg_products.domain.integration.sealed_product_opened_statistics_event import (
+    SealedProductOpenedStatisticsEvent,
+)
 from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
@@ -112,6 +121,43 @@ class _Events:
         self.scans.append((product_id, scan_payload))
 
 
+class _CollectionStub:
+    """Double collection."""
+
+    def __init__(self) -> None:
+        self.provenance: list[ProductProvenanceForCollection] = []
+        self.links: list[ProductParentLinkForCollectionEvent] = []
+
+    def publish_product_provenance(self, provenance: ProductProvenanceForCollection) -> None:
+        """Voir :class:`CollectionPort`."""
+        self.provenance.append(provenance)
+
+    def publish_parent_child_link(self, link: ProductParentLinkForCollectionEvent) -> None:
+        """Non utilisé."""
+        del link
+
+
+class _StatisticsStub:
+    """Double statistiques."""
+
+    def __init__(self) -> None:
+        self.opened: list[SealedProductOpenedStatisticsEvent] = []
+        self.revealed: list[object] = []
+        self.scans: list[object] = []
+
+    def record_sealed_product_opened(self, event: SealedProductOpenedStatisticsEvent) -> None:
+        """Voir :class:`StatisticsPort`."""
+        self.opened.append(event)
+
+    def record_card_revealed_from_opening(self, event: object) -> None:
+        """Non utilisé."""
+        self.revealed.append(event)
+
+    def record_opening_card_scan(self, event: object) -> None:
+        """Non utilisé."""
+        self.scans.append(event)
+
+
 def _booster(status: ProductStatus = ProductStatus.SEALED) -> ProductInstance:
     return ProductInstance(
         InternalProductId("b1"),
@@ -137,6 +183,27 @@ class TestOpenSealedProductUseCase:
         assert repo.find_by_id(inst.internal_id) is not None
         assert repo.find_by_id(inst.internal_id).status is ProductStatus.OPENED
         assert events.opened == ["b1"]
+
+    def test_collection_and_statistics_ports_after_open(self) -> None:
+        """Les ports optionnels reçoivent provenance et fait d'ouverture."""
+        repo = _Repo()
+        inst = _booster()
+        repo.save(inst)
+        events = _Events()
+        collection = _CollectionStub()
+        statistics = _StatisticsStub()
+        OpenSealedProductUseCase(
+            inst.internal_id,
+            repo,
+            events,
+            collection=collection,
+            statistics=statistics,
+        ).execute()
+        assert len(collection.provenance) == 1
+        assert collection.provenance[0].product_status_value == "opened"
+        assert len(statistics.opened) == 1
+        assert statistics.opened[0].product_id == "b1"
+        assert statistics.opened[0].previous_status_value == "sealed"
 
     def test_second_open_raises(self) -> None:
         """Une seule ouverture métier."""

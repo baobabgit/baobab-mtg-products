@@ -1,5 +1,10 @@
 """Cas d'usage : rattacher une carte révélée à un produit déjà ouvert."""
 
+from typing import Optional
+
+from baobab_mtg_products.domain.integration.card_revealed_statistics_event import (
+    CardRevealedStatisticsEvent,
+)
 from baobab_mtg_products.domain.opening.external_card_id import ExternalCardId
 from baobab_mtg_products.domain.opening.opened_product_card_trace_rules import (
     OpenedProductCardTraceRules,
@@ -13,6 +18,7 @@ from baobab_mtg_products.exceptions.registration.product_not_found_for_workflow_
     ProductNotFoundForWorkflowError,
 )
 from baobab_mtg_products.ports.product_repository_port import ProductRepositoryPort
+from baobab_mtg_products.ports.statistics_port import StatisticsPort
 from baobab_mtg_products.ports.product_workflow_event_recorder_port import (
     ProductWorkflowEventRecorderPort,
 )
@@ -35,6 +41,8 @@ class RegisterRevealedCardFromOpeningUseCase(UseCase[RevealedCardTrace]):
     :type trace_repository: RevealedCardTraceRepositoryPort
     :param events: Journal des révélations.
     :type events: ProductWorkflowEventRecorderPort
+    :param statistics: Agrégation statistique des révélations, si fourni.
+    :type statistics: StatisticsPort | None
     :raises ProductNotFoundForWorkflowError: si le produit est inconnu.
     :raises ProductNotOpenedForCardTraceError: si le produit n'est pas ouvert.
     :raises DuplicateRevealedCardTraceError: si la paire produit + carte existe déjà.
@@ -47,12 +55,14 @@ class RegisterRevealedCardFromOpeningUseCase(UseCase[RevealedCardTrace]):
         product_repository: ProductRepositoryPort,
         trace_repository: RevealedCardTraceRepositoryPort,
         events: ProductWorkflowEventRecorderPort,
+        statistics: Optional[StatisticsPort] = None,
     ) -> None:
         self._product_id = product_id
         self._external_card_id = external_card_id
         self._product_repository = product_repository
         self._trace_repository = trace_repository
         self._events = events
+        self._statistics = statistics
 
     def execute(self) -> RevealedCardTrace:
         """Calcule la séquence, persiste et émet l'événement."""
@@ -81,4 +91,12 @@ class RegisterRevealedCardFromOpeningUseCase(UseCase[RevealedCardTrace]):
             self._external_card_id.value,
             seq,
         )
+        if self._statistics is not None:
+            self._statistics.record_card_revealed_from_opening(
+                CardRevealedStatisticsEvent(
+                    source_product_id=self._product_id.value,
+                    external_card_id=self._external_card_id.value,
+                    sequence_in_opening=seq,
+                ),
+            )
         return trace

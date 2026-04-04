@@ -1,5 +1,13 @@
 """Cas d'usage : rattacher une instance sans parent à un parent conforme au kind."""
 
+from typing import Optional
+
+from baobab_mtg_products.domain.integration.product_parent_link_for_collection_event import (
+    ProductParentLinkForCollectionEvent,
+)
+from baobab_mtg_products.domain.integration.product_provenance_for_collection import (
+    ProductProvenanceForCollection,
+)
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.relationships.parent_child_relationship_rules import (
     ParentChildRelationshipRules,
@@ -28,6 +36,7 @@ from baobab_mtg_products.exceptions.relationship.product_already_has_parent_erro
 from baobab_mtg_products.exceptions.registration.product_not_found_for_workflow_error import (
     ProductNotFoundForWorkflowError,
 )
+from baobab_mtg_products.ports.collection_port import CollectionPort
 from baobab_mtg_products.ports.product_repository_port import ProductRepositoryPort
 from baobab_mtg_products.ports.product_workflow_event_recorder_port import (
     ProductWorkflowEventRecorderPort,
@@ -48,6 +57,8 @@ class AttachChildProductToParentUseCase(UseCase[ProductRelationship]):
     :type repository: ProductRepositoryPort
     :param events: Journal des rattachements.
     :type events: ProductWorkflowEventRecorderPort
+    :param collection: Synchronisation collection (provenance enfant + lien), si fourni.
+    :type collection: CollectionPort | None
     :raises InvalidProductRelationshipLinkError: si parent et enfant sont identiques.
     :raises ProductNotFoundForWorkflowError: si l'un des identifiants est inconnu.
     :raises ProductAlreadyHasParentError: si l'enfant a déjà un parent.
@@ -63,12 +74,14 @@ class AttachChildProductToParentUseCase(UseCase[ProductRelationship]):
         kind: ProductRelationshipKind,
         repository: ProductRepositoryPort,
         events: ProductWorkflowEventRecorderPort,
+        collection: Optional[CollectionPort] = None,
     ) -> None:
         self._parent_id = parent_id
         self._child_id = child_id
         self._kind = kind
         self._repository = repository
         self._events = events
+        self._collection = collection
 
     def execute(self) -> ProductRelationship:
         """Persiste ``parent_id`` sur l'enfant et journalise l'événement.
@@ -119,4 +132,16 @@ class AttachChildProductToParentUseCase(UseCase[ProductRelationship]):
             parent.internal_id.value,
             self._kind.value,
         )
+        if self._collection is not None:
+            self._collection.publish_product_provenance(
+                ProductProvenanceForCollection.from_product_instance(updated_child),
+            )
+            self._collection.publish_parent_child_link(
+                ProductParentLinkForCollectionEvent(
+                    child_product_id=child.internal_id.value,
+                    parent_product_id=parent.internal_id.value,
+                    relationship_kind_value=self._kind.value,
+                    attached=True,
+                ),
+            )
         return link

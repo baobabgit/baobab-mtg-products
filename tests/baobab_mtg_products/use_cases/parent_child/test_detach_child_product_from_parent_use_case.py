@@ -4,6 +4,12 @@ from typing import Dict, List, Optional, Tuple
 
 import pytest
 
+from baobab_mtg_products.domain.integration.product_parent_link_for_collection_event import (
+    ProductParentLinkForCollectionEvent,
+)
+from baobab_mtg_products.domain.integration.product_provenance_for_collection import (
+    ProductProvenanceForCollection,
+)
 from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
@@ -107,6 +113,22 @@ class _Events:
         del product_id, scan_payload
 
 
+class _CollectionStub:
+    """Double collection."""
+
+    def __init__(self) -> None:
+        self.provenance: list[ProductProvenanceForCollection] = []
+        self.links: list[ProductParentLinkForCollectionEvent] = []
+
+    def publish_product_provenance(self, provenance: ProductProvenanceForCollection) -> None:
+        """Voir :class:`CollectionPort`."""
+        self.provenance.append(provenance)
+
+    def publish_parent_child_link(self, link: ProductParentLinkForCollectionEvent) -> None:
+        """Voir :class:`CollectionPort`."""
+        self.links.append(link)
+
+
 def _node(
     pid: str,
     ptype: ProductType,
@@ -138,6 +160,28 @@ class TestDetachChildProductFromParentUseCase:
         assert updated is not None
         assert updated.parent_id is None
         assert events.detached == [("c", "r")]
+
+    def test_collection_port_after_detach(self) -> None:
+        """Détachement : provenance sans parent + lien inactif."""
+        repo = _Repo()
+        root = _node("r", ProductType.DISPLAY)
+        child = _node("c", ProductType.PLAY_BOOSTER, parent="r")
+        repo.save(root)
+        repo.save(child)
+        collection = _CollectionStub()
+        DetachChildProductFromParentUseCase(
+            child.internal_id,
+            repo,
+            _Events(),
+            collection=collection,
+        ).execute()
+        assert len(collection.provenance) == 1
+        assert collection.provenance[0].parent_product_id is None
+        assert len(collection.links) == 1
+        link = collection.links[0]
+        assert link.attached is False
+        assert link.relationship_kind_value is None
+        assert link.parent_product_id == "r"
 
     def test_rejects_unknown_child(self) -> None:
         """Instance inconnue."""

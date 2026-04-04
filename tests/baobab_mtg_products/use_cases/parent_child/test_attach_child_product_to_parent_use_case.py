@@ -4,6 +4,12 @@ from typing import Dict, List, Optional, Tuple
 
 import pytest
 
+from baobab_mtg_products.domain.integration.product_parent_link_for_collection_event import (
+    ProductParentLinkForCollectionEvent,
+)
+from baobab_mtg_products.domain.integration.product_provenance_for_collection import (
+    ProductProvenanceForCollection,
+)
 from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
@@ -119,6 +125,22 @@ class _Events:
         del product_id, scan_payload
 
 
+class _CollectionStub:
+    """Double collection."""
+
+    def __init__(self) -> None:
+        self.provenance: list[ProductProvenanceForCollection] = []
+        self.links: list[ProductParentLinkForCollectionEvent] = []
+
+    def publish_product_provenance(self, provenance: ProductProvenanceForCollection) -> None:
+        """Voir :class:`CollectionPort`."""
+        self.provenance.append(provenance)
+
+    def publish_parent_child_link(self, link: ProductParentLinkForCollectionEvent) -> None:
+        """Voir :class:`CollectionPort`."""
+        self.links.append(link)
+
+
 def _node(
     pid: str,
     ptype: ProductType,
@@ -158,6 +180,29 @@ class TestAttachChildProductToParentUseCase:
         assert updated.parent_id is not None
         assert updated.parent_id.value == "d"
         assert events.attached == [("b", "d", "display_contains_booster")]
+
+    def test_collection_port_receives_provenance_and_link(self) -> None:
+        """Rattachement : provenance enfant mise à jour + lien actif."""
+        repo = _Repo()
+        display = _node("d", ProductType.DISPLAY)
+        booster = _node("b", ProductType.PLAY_BOOSTER)
+        repo.save(display)
+        repo.save(booster)
+        collection = _CollectionStub()
+        AttachChildProductToParentUseCase(
+            display.internal_id,
+            booster.internal_id,
+            ProductRelationshipKind.DISPLAY_CONTAINS_BOOSTER,
+            repo,
+            _Events(),
+            collection=collection,
+        ).execute()
+        assert len(collection.provenance) == 1
+        assert collection.provenance[0].internal_product_id == "b"
+        assert collection.provenance[0].parent_product_id == "d"
+        assert len(collection.links) == 1
+        assert collection.links[0].attached is True
+        assert collection.links[0].relationship_kind_value == "display_contains_booster"
 
     def test_booster_without_parent_remains_valid_model(self) -> None:
         """Booster sans parent : attach optionnel."""

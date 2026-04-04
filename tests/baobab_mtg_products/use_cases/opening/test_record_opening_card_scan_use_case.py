@@ -4,6 +4,15 @@ from typing import Dict, List, Optional, Tuple
 
 import pytest
 
+from baobab_mtg_products.domain.integration.card_revealed_statistics_event import (
+    CardRevealedStatisticsEvent,
+)
+from baobab_mtg_products.domain.integration.opening_card_scan_statistics_event import (
+    OpeningCardScanStatisticsEvent,
+)
+from baobab_mtg_products.domain.integration.sealed_product_opened_statistics_event import (
+    SealedProductOpenedStatisticsEvent,
+)
 from baobab_mtg_products.domain.opening.opening_card_scan_payload import OpeningCardScanPayload
 from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
@@ -105,6 +114,27 @@ class _Events:
         self.opening_scans.append((product_id, scan_payload))
 
 
+class _StatisticsStub:
+    """Double statistiques."""
+
+    def __init__(self) -> None:
+        self.opened: list[SealedProductOpenedStatisticsEvent] = []
+        self.revealed: list[CardRevealedStatisticsEvent] = []
+        self.scans: list[OpeningCardScanStatisticsEvent] = []
+
+    def record_sealed_product_opened(self, event: SealedProductOpenedStatisticsEvent) -> None:
+        """Non utilisé."""
+        self.opened.append(event)
+
+    def record_card_revealed_from_opening(self, event: CardRevealedStatisticsEvent) -> None:
+        """Non utilisé."""
+        self.revealed.append(event)
+
+    def record_opening_card_scan(self, event: OpeningCardScanStatisticsEvent) -> None:
+        """Voir :class:`StatisticsPort`."""
+        self.scans.append(event)
+
+
 class TestRecordOpeningCardScanUseCase:
     """Scans carte en contexte d'ouverture."""
 
@@ -126,6 +156,29 @@ class TestRecordOpeningCardScanUseCase:
             events,
         ).execute()
         assert events.opening_scans == [("p1", "scan-raw-1")]
+
+    def test_statistics_port_receives_scan_event(self) -> None:
+        """Le port statistiques reçoit la charge utile du scan."""
+        repo = _Repo()
+        p = ProductInstance(
+            InternalProductId("p1"),
+            ProductType.BUNDLE,
+            MtgSetCode("TS"),
+            ProductStatus.OPENED,
+        )
+        repo.save(p)
+        events = _Events()
+        statistics = _StatisticsStub()
+        RecordOpeningCardScanUseCase(
+            p.internal_id,
+            OpeningCardScanPayload("payload-z"),
+            repo,
+            events,
+            statistics=statistics,
+        ).execute()
+        assert len(statistics.scans) == 1
+        assert statistics.scans[0].product_id == "p1"
+        assert statistics.scans[0].scan_payload == "payload-z"
 
     def test_rejects_sealed(self) -> None:
         """Pas de scan carte si non ouvert."""

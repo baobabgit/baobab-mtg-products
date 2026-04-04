@@ -19,6 +19,9 @@ from baobab_mtg_products.domain.registration.resolved_from_scan import ResolvedF
 from baobab_mtg_products.exceptions.registration.ambiguous_barcode_resolution_error import (
     AmbiguousBarcodeResolutionError,
 )
+from baobab_mtg_products.domain.integration.product_provenance_for_collection import (
+    ProductProvenanceForCollection,
+)
 from baobab_mtg_products.use_cases.registration.registration_from_scan_runner import (
     RegistrationFromScanRunner,
 )
@@ -154,6 +157,21 @@ class _FakeEvents:
     def record_opening_card_scan(self, product_id: str, scan_payload: str) -> None:
         """Voir :class:`ProductWorkflowEventRecorderPort`."""
         del product_id, scan_payload
+
+
+class _FakeCollection:
+    """Double du port collection."""
+
+    def __init__(self) -> None:
+        self.provenance: list[ProductProvenanceForCollection] = []
+
+    def publish_product_provenance(self, provenance: ProductProvenanceForCollection) -> None:
+        """Voir :class:`CollectionPort`."""
+        self.provenance.append(provenance)
+
+    def publish_parent_child_link(self, link: object) -> None:
+        """Non utilisé dans ces tests."""
+        del link
 
 
 class TestRegistrationFromScanRunner:
@@ -356,3 +374,45 @@ class TestRegistrationFromScanRunner:
         )
         with pytest.raises(AmbiguousBarcodeResolutionError):
             runner.register_via_commercial(CommercialBarcode("33333333"))
+
+    def test_collection_receives_provenance_when_configured(self) -> None:
+        """Si un port collection est injecté, chaque issue publie la provenance."""
+        repo = _FakeRepo()
+        events = _FakeEvents()
+        collection = _FakeCollection()
+        existing = ProductInstance(
+            InternalProductId("old"),
+            ProductType.PLAY_BOOSTER,
+            MtgSetCode("MH3"),
+            ProductStatus.SEALED,
+            commercial_barcode=CommercialBarcode("12345678"),
+        )
+        repo.save(existing)
+        resolution = _FakeResolution(
+            ResolvedFromScan(None, None),
+            ResolvedFromScan(None, None),
+        )
+        runner = RegistrationFromScanRunner(
+            repo,
+            resolution,
+            _FakeIdFactory(["unused"]),
+            events,
+            collection=collection,
+        )
+        runner.register_via_commercial(CommercialBarcode("12345678"))
+        assert len(collection.provenance) == 1
+        assert collection.provenance[0].internal_product_id == "old"
+
+        runner2 = RegistrationFromScanRunner(
+            repo,
+            _FakeResolution(
+                ResolvedFromScan(ProductType.BUNDLE, MtgSetCode("FDN")),
+                ResolvedFromScan(None, None),
+            ),
+            _FakeIdFactory(["n2"]),
+            events,
+            collection=collection,
+        )
+        runner2.register_via_commercial(CommercialBarcode("99999999"))
+        assert len(collection.provenance) == 2
+        assert collection.provenance[1].internal_product_id == "n2"
