@@ -7,11 +7,32 @@ moteur de règles ni deckbuilding.
 
 from importlib.metadata import PackageNotFoundError, version
 
+from baobab_mtg_products.domain.products import (
+    CommercialBarcode,
+    InternalBarcode,
+    InternalProductId,
+    MtgSetCode,
+    ProductInstance,
+    ProductStatus,
+    ProductType,
+    SerialNumber,
+)
 from baobab_mtg_products.exceptions import BaobabMtgProductsException
 
 try:
     __version__: str = version("baobab-mtg-products")
 except PackageNotFoundError:
-    __version__ = "0.1.0"
+    __version__ = "0.2.0"
 
-__all__ = ["BaobabMtgProductsException", "__version__"]
+__all__ = [
+    "BaobabMtgProductsException",
+    "CommercialBarcode",
+    "InternalBarcode",
+    "InternalProductId",
+    "MtgSetCode",
+    "ProductInstance",
+    "ProductStatus",
+    "ProductType",
+    "SerialNumber",
+    "__version__",
+]

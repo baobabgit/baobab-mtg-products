@@ -5,7 +5,11 @@ from importlib.metadata import PackageNotFoundError
 from unittest.mock import patch
 
 import baobab_mtg_products
-from baobab_mtg_products import BaobabMtgProductsException
+from baobab_mtg_products import (
+    BaobabMtgProductsException,
+    ProductInstance,
+    ProductType,
+)
 
 
 class TestBaobabMtgProductsRoot:
@@ -20,6 +24,11 @@ class TestBaobabMtgProductsRoot:
         """L'exception racine doit être importable depuis le package."""
         assert issubclass(BaobabMtgProductsException, Exception)
 
+    def test_exports_product_model_symbols(self) -> None:
+        """Le modèle produit de référence est exposé au niveau racine."""
+        assert ProductType.DISPLAY.value == "display"
+        assert ProductInstance.__name__ == "ProductInstance"
+
     def test_version_fallback_when_package_metadata_missing(self) -> None:
         """Sans métadonnées distribuées, la version de repli doit s'appliquer."""
         with patch(
@@ -27,5 +36,5 @@ class TestBaobabMtgProductsRoot:
             side_effect=PackageNotFoundError(),
         ):
             importlib.reload(baobab_mtg_products)
-            assert baobab_mtg_products.__version__ == "0.1.0"
+            assert baobab_mtg_products.__version__ == "0.2.0"
         importlib.reload(baobab_mtg_products)

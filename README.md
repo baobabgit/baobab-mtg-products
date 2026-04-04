@@ -25,12 +25,31 @@ python -m build
 ## Utilisation de base
 
 ```python
+from baobab_mtg_products import (
+    BaobabMtgProductsException,
+    InternalProductId,
+    MtgSetCode,
+    ProductInstance,
+    ProductStatus,
+    ProductType,
+)
+
+instance = ProductInstance(
+    internal_id=InternalProductId("uuid-ou-id-interne"),
+    product_type=ProductType.PLAY_BOOSTER,
+    set_code=MtgSetCode("mh3"),
+    status=ProductStatus.REGISTERED,
+)
+assert instance.domain_identity() == "uuid-ou-id-interne"
+```
+
+```python
 from baobab_mtg_products import BaobabMtgProductsException
 
 raise BaobabMtgProductsException("exemple d'erreur métier")
 ```
 
-Les sous-packages `domain`, `ports` et `use_cases` fournissent des **points d’extension** (entité de domaine abstraite, protocoles de ports, base des cas d’usage) pour les fonctionnalités à venir.
+Les sous-packages `domain.products`, `ports` et `use_cases` regroupent respectivement le **modèle produit**, les **interfaces d’intégration** et les **cas d’usage** à venir.
 
 ## Qualité et tests
 
