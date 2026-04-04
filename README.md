@@ -49,7 +49,23 @@ from baobab_mtg_products import BaobabMtgProductsException
 raise BaobabMtgProductsException("exemple d'erreur métier")
 ```
 
-Les sous-packages `domain.products`, `ports` et `use_cases` regroupent respectivement le **modèle produit**, les **interfaces d’intégration** et les **cas d’usage** à venir.
+### Enregistrement par scan (aperçu)
+
+Les applications fournissent des implémentations des ports (`ProductRepositoryPort`, `BarcodeResolutionPort`, etc.), puis injectent un `RegistrationFromScanRunner` dans les cas d’usage :
+
+```python
+from baobab_mtg_products.domain.products import CommercialBarcode
+from baobab_mtg_products.use_cases.registration import (
+    RegisterProductByCommercialScanUseCase,
+    RegistrationFromScanRunner,
+)
+
+# runner = RegistrationFromScanRunner(repo, resolution, id_factory, event_recorder)
+# use_case = RegisterProductByCommercialScanUseCase(CommercialBarcode("12345678"), runner)
+# result = use_case.execute()  # existing | new_known_from_catalog | new_pending_qualification
+```
+
+Les sous-packages `domain.products`, `domain.registration`, `ports` et `use_cases` portent le **modèle**, les **DTO du flux scan**, les **contrats d’intégration** et les **cas d’usage** métier.
 
 ## Qualité et tests
 

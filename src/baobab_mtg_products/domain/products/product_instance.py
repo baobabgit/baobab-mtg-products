@@ -1,6 +1,8 @@
 """Instance concrète d'un produit scellé et ses métadonnées de provenance."""
 
-from typing import Optional
+from __future__ import annotations
+
+from typing import Optional, cast
 
 from baobab_mtg_products.domain.entity import DomainEntity
 from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
@@ -13,6 +15,8 @@ from baobab_mtg_products.domain.products.serial_number import SerialNumber
 from baobab_mtg_products.exceptions.product.invalid_product_instance_error import (
     InvalidProductInstanceError,
 )
+
+_DERIVED_FIELD_UNSET = object()
 
 
 class ProductInstance(DomainEntity):
@@ -112,3 +116,72 @@ class ProductInstance(DomainEntity):
         :rtype: str
         """
         return self._internal_id.value
+
+    def derived_with(
+        self,
+        *,
+        product_type: ProductType | object = _DERIVED_FIELD_UNSET,
+        set_code: MtgSetCode | object = _DERIVED_FIELD_UNSET,
+        status: ProductStatus | object = _DERIVED_FIELD_UNSET,
+        serial_number: Optional[SerialNumber] | object = _DERIVED_FIELD_UNSET,
+        commercial_barcode: Optional[CommercialBarcode] | object = _DERIVED_FIELD_UNSET,
+        internal_barcode: Optional[InternalBarcode] | object = _DERIVED_FIELD_UNSET,
+        parent_id: Optional[InternalProductId] | object = _DERIVED_FIELD_UNSET,
+    ) -> ProductInstance:
+        """Construit une nouvelle instance en conservant l'identité et l'historique logique.
+
+        Seuls les paramètres explicitement fournis (autre que la sentinelle
+        interne) remplacent les champs correspondants. Utile pour qualification
+        ou corrections métier sans mutateur sur l'objet d'origine.
+
+        :param product_type: Nouveau type, si fourni.
+        :param set_code: Nouveau code de set, si fourni.
+        :param status: Nouveau statut, si fourni.
+        :param serial_number: Nouveau numéro de série (y compris ``None`` explicite).
+        :param commercial_barcode: Nouveau code-barres commercial.
+        :param internal_barcode: Nouveau code-barres interne.
+        :param parent_id: Nouvelle référence parente.
+        :return: Nouvelle :class:`ProductInstance` avec les champs fusionnés.
+        :rtype: ProductInstance
+        """
+        next_type = (
+            self._product_type
+            if product_type is _DERIVED_FIELD_UNSET
+            else cast(ProductType, product_type)
+        )
+        next_set = (
+            self._set_code if set_code is _DERIVED_FIELD_UNSET else cast(MtgSetCode, set_code)
+        )
+        next_status = (
+            self._status if status is _DERIVED_FIELD_UNSET else cast(ProductStatus, status)
+        )
+        next_serial = (
+            self._serial_number
+            if serial_number is _DERIVED_FIELD_UNSET
+            else cast(Optional[SerialNumber], serial_number)
+        )
+        next_commercial = (
+            self._commercial_barcode
+            if commercial_barcode is _DERIVED_FIELD_UNSET
+            else cast(Optional[CommercialBarcode], commercial_barcode)
+        )
+        next_internal = (
+            self._internal_barcode
+            if internal_barcode is _DERIVED_FIELD_UNSET
+            else cast(Optional[InternalBarcode], internal_barcode)
+        )
+        next_parent = (
+            self._parent_id
+            if parent_id is _DERIVED_FIELD_UNSET
+            else cast(Optional[InternalProductId], parent_id)
+        )
+        return ProductInstance(
+            internal_id=self._internal_id,
+            product_type=next_type,
+            set_code=next_set,
+            status=next_status,
+            serial_number=next_serial,
+            commercial_barcode=next_commercial,
+            internal_barcode=next_internal,
+            parent_id=next_parent,
+        )
