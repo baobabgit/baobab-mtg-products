@@ -115,7 +115,7 @@ class ValidationException(BaobabException):
 
 ### Couverture de code
 
-- **Exigence minimale** : 90% de couverture de code par les tests unitaires
+- **Exigence minimale** : 95 % de couverture de code par les tests unitaires (voir `fail_under` dans `pyproject.toml`)
 - La couverture doit être vérifiée à chaque commit/PR
 - **Emplacement des fichiers de couverture** : Tous les fichiers concernant la couverture de code (coverage) doivent être placés dans le dossier `docs/tests/coverage`
   - Cela inclut le fichier `.coverage` et tous les rapports générés (HTML, XML, JSON et autres formats)

@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "baobab-mtg-products"
-version = "0.8.0"
-description = "Librairie métier pour les produits scellés Magic: The Gathering (enregistrement, relations, ouverture, traçabilité)."
+version = "1.0.0"
+description = "Librairie métier typée pour les produits scellés Magic: The Gathering — scan, qualification, relations parent-enfant, ouverture, traçabilité carte et ports collection/statistiques."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
     "Typing :: Typed",
 ]
 dependencies = []
@@ -37,7 +38,9 @@ dev = [
 ]
 
 [project.urls]
-Repository = "https://github.com/baobab-mtg/baobab-mtg-products"
+Documentation = "https://github.com/baobabgit/baobab-mtg-products#readme"
+Repository = "https://github.com/baobabgit/baobab-mtg-products"
+Issues = "https://github.com/baobabgit/baobab-mtg-products/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -58,7 +61,7 @@ data_file = "docs/tests/coverage/.coverage"
 relative_files = true
 
 [tool.coverage.report]
-fail_under = 90
+fail_under = 95
 show_missing = true
 skip_covered = false
 

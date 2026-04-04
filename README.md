@@ -1,28 +1,65 @@
 # baobab-mtg-products
 
-Librairie Python **métier** pour la gestion des produits scellés *Magic: The Gathering* : modélisation, enregistrement et qualification par scan, relations parent / enfant, ouverture et traçabilité des cartes révélées. Elle expose des **ports** vers la collection et les statistiques sans imposer d’HTTP, d’UI, de moteur de règles ni de deckbuilding.
+Librairie Python **métier** et **typée** (`py.typed`) pour la gestion des produits scellés *Magic: The Gathering* : modélisation, enregistrement et qualification par scan, relations parent / enfant, ouverture, traçabilité des cartes révélées, journal d’événements, ports vers la collection et les statistiques, et services de consultation. **Aucune** exposition HTTP, interface graphique, moteur de règles du jeu ni deckbuilding.
+
+## Table des matières
+
+- [Périmètre](#périmètre)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Démarrage rapide](#démarrage-rapide)
+- [Organisation du package](#organisation-du-package)
+- [Scénarios métier (aperçus)](#scénarios-métier-aperçus)
+- [Qualité, couverture et release](#qualité-couverture-et-release)
+- [Documentation](#documentation)
+- [Contribution](#contribution)
+- [Licence](#licence)
+
+## Périmètre
+
+**Inclus** (voir `docs/001_specifications.md`) : types et instances de produits scellés, statuts, codes-barres, série, set, relations parent-enfant, ouverture, traces carte ↔ produit ouvert, historique métier, intégration collection/statistiques via ports, consultation structurée.
+
+**Exclus** : règles de jeu, deckbuilding, possession globale utilisateur, API REST/GraphQL, UI.
 
 ## Prérequis
 
-- Python 3.10 ou supérieur
-- Un environnement virtuel recommandé
+- Python **3.10** à **3.13**
+- Environnement virtuel recommandé pour le développement
 
 ## Installation
 
-Installation en mode éditable avec les outils de développement :
+### Utilisateur (runtime)
+
+Depuis une roue ou un sdist produit localement ou par votre pipeline :
+
+```bash
+python -m pip install /chemin/vers/baobab_mtg_products-*.whl
+```
+
+Ou, à partir du dépôt cloné (sans les outils de dev) :
+
+```bash
+python -m pip install .
+```
+
+Aucune dépendance runtime tierce n’est requise (`dependencies = []` dans `pyproject.toml`).
+
+### Contributeur (développement)
 
 ```bash
 python -m pip install -e ".[dev]"
 ```
 
-Construction d’une roue (wheel) :
+Construction des artefacts :
 
 ```bash
 python -m pip install build
 python -m build
 ```
 
-## Utilisation de base
+Les roues et le sdist sont générés sous `dist/`.
+
+## Démarrage rapide
 
 ```python
 from baobab_mtg_products import (
@@ -43,15 +80,34 @@ instance = ProductInstance(
 assert instance.domain_identity() == "uuid-ou-id-interne"
 ```
 
+Les erreurs métier héritent de `BaobabMtgProductsException` :
+
 ```python
 from baobab_mtg_products import BaobabMtgProductsException
 
 raise BaobabMtgProductsException("exemple d'erreur métier")
 ```
 
-### Enregistrement par scan (aperçu)
+**Version** : `import baobab_mtg_products as pkg; print(pkg.__version__)`.
 
-Les applications fournissent des implémentations des ports (`ProductRepositoryPort`, `BarcodeResolutionPort`, etc.), puis injectent un `RegistrationFromScanRunner` dans les cas d’usage :
+## Organisation du package
+
+| Zone | Rôle |
+|------|------|
+| `baobab_mtg_products` (racine) | Exports publics stables (modèle, services de lecture, cas d’usage courants, ports d’intégration clés). |
+| `domain.*` | Entités, value objects, règles, DTO d’intégration et de consultation. |
+| `use_cases.*` | Workflows commande (scan, qualification, rattachement, ouverture, …). |
+| `ports` | Contrats (`Protocol`) pour persistance, catalogue, journal, collection, statistiques, etc. |
+| `services.query` | Consultation : snapshot produit, vue structurelle, frise historique. |
+| `exceptions` | Exceptions spécifiques (réexportées au niveau racine pour les plus usuelles). |
+
+La liste exacte des symboles exportés par la racine est donnée par `baobab_mtg_products.__all__`.
+
+## Scénarios métier (aperçus)
+
+### Enregistrement par scan
+
+Les applications implémentent les ports (`ProductRepositoryPort`, `BarcodeResolutionPort`, etc.), puis injectent un `RegistrationFromScanRunner` :
 
 ```python
 from baobab_mtg_products.domain.products import CommercialBarcode
@@ -65,13 +121,9 @@ from baobab_mtg_products.use_cases.registration import (
 # result = use_case.execute()  # existing | new_known_from_catalog | new_pending_qualification
 ```
 
-Les sous-packages `domain.products`, `domain.registration`, `domain.opening`, `domain.history`, `domain.integration`, `domain.query`, `ports`, `services` et `use_cases` portent le **modèle**, les **DTO** (flux, intégration, vues de lecture), les **contrats** et les **cas d’usage / services** métier.
+Les adaptateurs **collection** et **statistiques** implémentent `CollectionPort` et `StatisticsPort` ; les cas d’usage concernés acceptent une injection **optionnelle** et publient des DTO stables après succès.
 
-Les adaptateurs **collection** et **statistiques** implémentent `CollectionPort` et `StatisticsPort` ; les cas d’usage concernés les prennent en **injection optionnelle** (`None` par défaut) et émettent des DTO stables après succès (provenance, lien parent-enfant, faits d’ouverture / révélation / scan carte).
-
-### Relations parent / enfant (aperçu)
-
-Un booster peut rester sans `parent_id` ; pour le rattacher à une display ou placer un sous-produit sous un bundle, utiliser les cas d’usage dédiés (types compatibles selon `ProductRelationshipKind`, pas de cycle, enfant sans parent préalable) :
+### Relations parent / enfant
 
 ```python
 from baobab_mtg_products import (
@@ -89,11 +141,7 @@ from baobab_mtg_products.domain.products import ProductRelationship
 # DetachChildProductFromParentUseCase(child_id, repo, events).execute()
 ```
 
-Les événements `record_product_attached_to_parent` / `record_product_detached_from_parent` complètent le journal déjà utilisé pour les scans.
-
-### Ouverture et cartes révélées (aperçu)
-
-Un produit **ouvrable** (tout type sauf `DISPLAY`) au statut `sealed` ou `qualified` peut être passé à `opened` une seule fois. Les cartes sont rattachées via `ExternalCardId` (opaque pour la lib) et persistées par un adaptateur de `RevealedCardTraceRepositoryPort` ; les scans bruts pendant la session passent par `OpeningCardScanPayload` et `record_opening_card_scan`.
+### Ouverture et cartes révélées
 
 ```python
 from baobab_mtg_products import (
@@ -105,16 +153,12 @@ from baobab_mtg_products import (
 )
 
 # open_uc = OpenSealedProductUseCase(product_id, repo, events, collection=…, statistics=…)
-# outcome = open_uc.execute()  # statut opened + ProductOpeningEvent
+# outcome = open_uc.execute()
 # RegisterRevealedCardFromOpeningUseCase(pid, ExternalCardId("…"), repo, trace_repo, events).execute()
 # RecordOpeningCardScanUseCase(pid, OpeningCardScanPayload("…"), repo, events).execute()
 ```
 
-Le package `domain.opening` regroupe les value objects et règles ; `ports` expose `RevealedCardTraceRepositoryPort`.
-
-### Consultation produit, structure et historique (aperçu)
-
-Les **services** `GetSealedProductSnapshotService`, `GetProductStructuralViewService` et `GetProductBusinessTimelineService` offrent des points d’entrée lisibles (méthode `load()`) sans exposer un CRUD générique. Ils s’appuient sur `ProductRepositoryPort` (étendu avec `list_direct_children_of_parent` pour les enfants directs) et sur `ProductBusinessHistoryQueryPort` pour la chronologie.
+### Consultation (produit, structure, historique)
 
 ```python
 from baobab_mtg_products import (
@@ -129,34 +173,35 @@ from baobab_mtg_products import (
 # # struct.product, struct.parent, struct.direct_children
 ```
 
-### Historique métier et journal interne (aperçu)
+Le dépôt doit implémenter `list_direct_children_of_parent` sur `ProductRepositoryPort`.
 
-`InMemoryProductBusinessEventLedger` implémente `ProductWorkflowEventRecorderPort` : chaque appel `record_*` produit une entrée typée (`ProductBusinessEventKind`) avec charge utile optionnelle. Le ledger refuse les doublons interdits (ex. second enregistrement, ouverture sans scan ni enregistrement préalable, carte sans ouverture journalisée, rattachement incohérent). La **lecture** de la chronologie se fait via `GetProductBusinessTimelineService` (export racine) ou, pour compatibilité, `ListProductBusinessHistoryUseCase` sous `baobab_mtg_products.use_cases.history`.
+### Historique métier
+
+`InMemoryProductBusinessEventLedger` implémente `ProductWorkflowEventRecorderPort` et peut servir de journal avec garde-fous. Lecture via `GetProductBusinessTimelineService` ou `ListProductBusinessHistoryUseCase` (`use_cases.history`).
 
 ```python
 from baobab_mtg_products import GetProductBusinessTimelineService, InMemoryProductBusinessEventLedger
 from baobab_mtg_products.domain.products import InternalProductId
 
 # ledger = InMemoryProductBusinessEventLedger()
-# runner = RegistrationFromScanRunner(repo, resolution, id_factory, ledger)
 # timeline = GetProductBusinessTimelineService(InternalProductId("…"), ledger).load()
 ```
 
-## Qualité et tests
+## Qualité, couverture et release
 
 ```bash
-pytest
-coverage run -m pytest
-coverage report
+python -m pytest
+python -m coverage run -m pytest
+python -m coverage report
 coverage html
-black --check .
-pylint src tests
-mypy src
-flake8 src tests
-bandit -r src
+python -m black --check .
+python -m pylint src tests
+python -m mypy src
+python -m flake8 src tests
+python -m bandit -r src
 ```
 
-Les données et rapports de couverture sont écrits sous `docs/tests/coverage/` (voir ce dossier).
+Les données de couverture sont configurées dans `pyproject.toml` (seuil minimal, chemins sous `docs/tests/coverage/`). La checklist de publication est décrite dans **`docs/RELEASE.md`**.
 
 ## Documentation
 
@@ -164,13 +209,14 @@ Les données et rapports de couverture sont écrits sous `docs/tests/coverage/` 
 - Contraintes de développement : `docs/000_dev_constraints.md`
 - Journal de développement : `docs/dev_diary.md`
 - Journal des versions : `CHANGELOG.md`
+- Publication : `docs/RELEASE.md`
 
 ## Contribution
 
 1. Créer une branche depuis `main` (ex. `feature/...`).
 2. Respecter **une classe par fichier**, tests miroirs, types stricts et exceptions héritant de `BaobabMtgProductsException`.
 3. Messages de commit au format [Conventional Commits](https://www.conventionalcommits.org/).
-4. Vérifier tests, couverture (≥ 90 %) et outils listés ci-dessus.
+4. Exécuter les tests, la couverture (seuil minimal dans `[tool.coverage.report] fail_under`) et les outils listés ci-dessus.
 
 ## Licence
 

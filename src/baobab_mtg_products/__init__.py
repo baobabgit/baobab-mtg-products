@@ -2,7 +2,8 @@
 
 Cette librairie modélise le cycle de vie des produits scellés (enregistrement,
 relations parent/enfant, ouverture, traçabilité) sans couplage HTTP, UI,
-moteur de règles ni deckbuilding.
+moteur de règles ni deckbuilding. La surface exportée par ce module est
+volontairement stable à partir de la version **1.0** (semver).
 
 **API publique recommandée** — importer depuis ce package :
 
@@ -75,7 +76,7 @@ from baobab_mtg_products.use_cases.parent_child import (
 try:
     __version__: str = version("baobab-mtg-products")
 except PackageNotFoundError:
-    __version__ = "0.8.0"
+    __version__ = "1.0.0"
 
 __all__ = [
     "AttachChildProductToParentUseCase",

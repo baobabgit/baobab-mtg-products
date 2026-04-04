@@ -41,15 +41,13 @@ class ParentChildRelationshipRules:
         :type kind: ProductRelationshipKind
         :raises IncompatibleParentChildTypesError: si la combinaison est interdite.
         """
-        match kind:
-            case ProductRelationshipKind.DISPLAY_CONTAINS_BOOSTER:
-                cls._validate_display_contains_booster(parent, child)
-                return
-            case ProductRelationshipKind.BUNDLE_CONTAINS_SUBPRODUCT:
-                cls._validate_bundle_contains_subproduct(parent, child)
-                return
-            case ProductRelationshipKind.GENERIC_STRUCTURAL_ATTACHMENT:
-                return
+        if kind == ProductRelationshipKind.DISPLAY_CONTAINS_BOOSTER:
+            cls._validate_display_contains_booster(parent, child)
+        elif kind == ProductRelationshipKind.BUNDLE_CONTAINS_SUBPRODUCT:
+            cls._validate_bundle_contains_subproduct(parent, child)
+        else:
+            # Seul GENERIC_STRUCTURAL_ATTACHMENT reste : pas de validation de types.
+            assert kind is ProductRelationshipKind.GENERIC_STRUCTURAL_ATTACHMENT
 
     @staticmethod
     def _validate_display_contains_booster(
