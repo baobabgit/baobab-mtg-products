@@ -7,6 +7,13 @@ moteur de règles ni deckbuilding.
 
 from importlib.metadata import PackageNotFoundError, version
 
+from baobab_mtg_products.domain.opening import (
+    ExternalCardId,
+    OpenSealedProductOutcome,
+    OpeningCardScanPayload,
+    ProductOpeningEvent,
+    RevealedCardTrace,
+)
 from baobab_mtg_products.domain.products import (
     CommercialBarcode,
     InternalBarcode,
@@ -19,30 +26,43 @@ from baobab_mtg_products.domain.products import (
     ProductType,
     SerialNumber,
 )
+from baobab_mtg_products.exceptions import BaobabMtgProductsException
+from baobab_mtg_products.use_cases.opening import (
+    OpenSealedProductUseCase,
+    RecordOpeningCardScanUseCase,
+    RegisterRevealedCardFromOpeningUseCase,
+)
 from baobab_mtg_products.use_cases.parent_child import (
     AttachChildProductToParentUseCase,
     DetachChildProductFromParentUseCase,
 )
-from baobab_mtg_products.exceptions import BaobabMtgProductsException
 
 try:
     __version__: str = version("baobab-mtg-products")
 except PackageNotFoundError:
-    __version__ = "0.4.0"
+    __version__ = "0.5.0"
 
 __all__ = [
     "AttachChildProductToParentUseCase",
     "BaobabMtgProductsException",
     "CommercialBarcode",
     "DetachChildProductFromParentUseCase",
+    "ExternalCardId",
     "InternalBarcode",
     "InternalProductId",
     "MtgSetCode",
+    "OpenSealedProductOutcome",
+    "OpenSealedProductUseCase",
+    "OpeningCardScanPayload",
     "ProductInstance",
+    "ProductOpeningEvent",
     "ProductRelationship",
     "ProductRelationshipKind",
     "ProductStatus",
     "ProductType",
+    "RecordOpeningCardScanUseCase",
+    "RegisterRevealedCardFromOpeningUseCase",
+    "RevealedCardTrace",
     "SerialNumber",
     "__version__",
 ]

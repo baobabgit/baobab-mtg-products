@@ -66,3 +66,38 @@ class ProductWorkflowEventRecorderPort(Protocol):
         :type previous_parent_id: str
         """
         ...
+
+    def record_product_opened(self, product_id: str) -> None:
+        """Enregistre le passage au statut « opened » pour une instance scellée.
+
+        :param product_id: Identifiant interne du produit ouvert.
+        :type product_id: str
+        """
+        ...
+
+    def record_card_revealed_from_opening(
+        self,
+        product_id: str,
+        external_card_id: str,
+        sequence_in_opening: int,
+    ) -> None:
+        """Enregistre l'association d'une carte révélée à un produit ouvert.
+
+        :param product_id: Produit source (déjà ouvert).
+        :type product_id: str
+        :param external_card_id: Identifiant carte externe sérialisé.
+        :type external_card_id: str
+        :param sequence_in_opening: Rang d'enregistrement dans la session.
+        :type sequence_in_opening: int
+        """
+        ...
+
+    def record_opening_card_scan(self, product_id: str, scan_payload: str) -> None:
+        """Enregistre un scan de carte effectué pendant ou après l'ouverture.
+
+        :param product_id: Produit ouvert concerné.
+        :type product_id: str
+        :param scan_payload: Valeur brute ou normalisée auditée.
+        :type scan_payload: str
+        """
+        ...

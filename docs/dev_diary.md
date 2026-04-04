@@ -2,6 +2,20 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-04-04 — feature 04_opening_and_card_traceability
+
+### Modifications
+
+- Branche `feature/opening-card-traceability` : package `domain.opening` (`ProductOpeningEvent`, `OpenSealedProductOutcome`, `ExternalCardId`, `RevealedCardTrace`, `OpeningCardScanPayload`, règles d’éligibilité) ; port `RevealedCardTraceRepositoryPort` ; cas d’usage `OpenSealedProductUseCase`, `RegisterRevealedCardFromOpeningUseCase`, `RecordOpeningCardScanUseCase` ; exceptions sous `exceptions.opening` ; extension `ProductWorkflowEventRecorderPort` (ouverture, carte révélée, scan carte) ; tests miroirs ; version `0.5.0`.
+
+### Buts
+
+- Ouvrir une fois un scellé éligible (hors display, statuts `sealed` ou `qualified`), tracer les cartes révélées via identifiants externes et journaliser les scans pendant la session.
+
+### Impact
+
+- Les adaptateurs implémentent le dépôt de traces et les trois nouvelles méthodes du journal d’événements ; pas de modèle de possession globale des cartes.
+
 ## 2026-04-04 — feature 03_parent_child_relationships
 
 ### Modifications

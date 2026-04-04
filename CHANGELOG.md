@@ -4,6 +4,16 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.5.0] - 2026-04-04
+
+### Added
+
+- Ouverture et traçabilité : `domain.opening` (`ProductOpeningEvent`, `OpenSealedProductOutcome`, `ExternalCardId`, `RevealedCardTrace`, `OpeningCardScanPayload`, `SealedProductOpeningRules`, `OpenedProductCardTraceRules`).
+- Cas d’usage `OpenSealedProductUseCase`, `RegisterRevealedCardFromOpeningUseCase`, `RecordOpeningCardScanUseCase` (`use_cases.opening`).
+- Port `RevealedCardTraceRepositoryPort` pour persister les provenances carte ↔ produit ouvert.
+- Exceptions `ProductAlreadyOpenedError`, `ProductNotOpenableError`, `ProductNotReadyForOpeningError`, `ProductNotOpenedForCardTraceError`, `DuplicateRevealedCardTraceError`, `InvalidExternalCardIdError`, `InvalidOpeningCardScanPayloadError`, `InvalidRevealedCardSequenceError` (réexportées depuis `baobab_mtg_products.exceptions`).
+- Port `ProductWorkflowEventRecorderPort` : `record_product_opened`, `record_card_revealed_from_opening`, `record_opening_card_scan`.
+
 ## [0.4.0] - 2026-04-04
 
 ### Added

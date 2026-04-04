@@ -101,6 +101,23 @@ class _Events:
         """Non utilisé."""
         del child_id, previous_parent_id
 
+    def record_product_opened(self, product_id: str) -> None:
+        """Non utilisé."""
+        del product_id
+
+    def record_card_revealed_from_opening(
+        self,
+        product_id: str,
+        external_card_id: str,
+        sequence_in_opening: int,
+    ) -> None:
+        """Non utilisé."""
+        del product_id, external_card_id, sequence_in_opening
+
+    def record_opening_card_scan(self, product_id: str, scan_payload: str) -> None:
+        """Non utilisé."""
+        del product_id, scan_payload
+
 
 def _node(
     pid: str,
