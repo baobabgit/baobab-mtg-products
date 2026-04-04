@@ -1,0 +1,120 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "baobab-mtg-products"
+version = "0.1.0"
+description = "Librairie métier pour les produits scellés Magic: The Gathering (enregistrement, relations, ouverture, traçabilité)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Baobab MTG Products contributors" }]
+keywords = ["mtg", "magic-the-gathering", "sealed", "products", "domain"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "bandit[toml]>=1.7.0,<2.0.0",
+    "black>=24.0.0,<25.0.0",
+    "coverage[toml]>=7.0.0,<8.0.0",
+    "flake8-pyproject>=1.2.0,<2.0.0",
+    "flake8>=7.0.0,<8.0.0",
+    "mypy>=1.8.0,<2.0.0",
+    "pylint>=3.0.0,<4.0.0",
+    "pytest>=7.0.0,<9.0.0",
+]
+
+[project.urls]
+Repository = "https://github.com/baobab-mtg/baobab-mtg-products"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+baobab_mtg_products = ["py.typed"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra -q"
+
+[tool.coverage.run]
+branch = true
+source_pkgs = ["baobab_mtg_products"]
+data_file = "docs/tests/coverage/.coverage"
+relative_files = true
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = false
+
+[tool.coverage.html]
+directory = "docs/tests/coverage/html"
+
+[tool.coverage.xml]
+output = "docs/tests/coverage/coverage.xml"
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+include = "\\.pyi?$"
+extend-exclude = "/docs/tests/coverage/"
+
+[tool.flake8]
+max-line-length = 100
+extend-ignore = ["E203", "W503"]
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "docs/tests/coverage",
+]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+show_error_codes = true
+mypy_path = "src"
+packages = ["baobab_mtg_products"]
+
+[tool.pylint.main]
+py-version = "3.10"
+jobs = 0
+recursive = true
+ignore = ["CVS", ".venv", "venv", "build", "dist"]
+
+[tool.pylint.format]
+max-line-length = 100
+
+[tool.pylint."messages control"]
+disable = [
+    "too-few-public-methods",
+    "unnecessary-ellipsis",
+]
+
+[tool.pylint.design]
+max-args = 8
+max-attributes = 12
+
+[tool.bandit]
+targets = ["src/baobab_mtg_products"]
+exclude_dirs = ["tests", "docs/tests/coverage"]

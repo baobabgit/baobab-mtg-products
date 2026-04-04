@@ -1,0 +1,31 @@
+"""Tests du point d'entrée public du package."""
+
+import importlib
+from importlib.metadata import PackageNotFoundError
+from unittest.mock import patch
+
+import baobab_mtg_products
+from baobab_mtg_products import BaobabMtgProductsException
+
+
+class TestBaobabMtgProductsRoot:
+    """Vérifie les exports et la version exposée par le package racine."""
+
+    def test_version_is_non_empty_string(self) -> None:
+        """La version doit être une chaîne non vide."""
+        assert isinstance(baobab_mtg_products.__version__, str)
+        assert baobab_mtg_products.__version__
+
+    def test_exports_baobab_mtg_products_exception(self) -> None:
+        """L'exception racine doit être importable depuis le package."""
+        assert issubclass(BaobabMtgProductsException, Exception)
+
+    def test_version_fallback_when_package_metadata_missing(self) -> None:
+        """Sans métadonnées distribuées, la version de repli doit s'appliquer."""
+        with patch(
+            "importlib.metadata.version",
+            side_effect=PackageNotFoundError(),
+        ):
+            importlib.reload(baobab_mtg_products)
+            assert baobab_mtg_products.__version__ == "0.1.0"
+        importlib.reload(baobab_mtg_products)
