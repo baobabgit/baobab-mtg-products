@@ -147,7 +147,7 @@ Ces objets doivent être pensés pour refléter le domaine métier et non une si
 - Chaque classe doit avoir son fichier de tests correspondant.
 - Les tests doivent être organisés en classes de test.
 - Les classes abstraites doivent être testées via des implémentations concrètes dédiées aux tests.
-- La couverture minimale attendue est de 90 %, avec génération des rapports dans docs/tests/coverage.
+- La couverture minimale attendue est de 95 %, avec génération des rapports dans docs/tests/coverage.
 
 ### 9.9 Dépendances
 
@@ -218,7 +218,7 @@ Toute fonctionnalité doit être intégrée via Pull Request après validation d
 - les cas d’usage minimum sont implémentés ;
 - l’architecture reste indépendante des couches hors périmètre ;
 - les exceptions sont hiérarchisées et spécifiques ;
-- les tests atteignent au moins 90 % de couverture ;
+- les tests atteignent au moins 95 % de couverture ;
 - black, pylint, mypy, flake8 et bandit passent sans erreur ;
 - la documentation et le journal de développement sont présents ;
 - la structure du projet respecte les contraintes définies.

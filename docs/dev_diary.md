@@ -2,6 +2,20 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-04-04 — feature 08_release_readiness
+
+### Modifications
+
+- Branche `feature/release-readiness` : version **1.0.0** ; `README.md` restructuré (périmètre, installation runtime/dev, démarrage rapide, tableaux, liens) ; `docs/RELEASE.md` (checklist publication) ; `CHANGELOG.md` ; métadonnées `pyproject.toml` (classifier stable, URLs, description) ; seuil couverture **95 %** (aligné cahier des charges / contraintes dev) ; `ParentChildRelationshipRules` ajusté pour **100 %** branches ; stabilité API documentée dans le module racine ; validation `python -m build`.
+
+### Buts
+
+- Finaliser une release technique cohérente avec le cahier des charges, sans nouvelle fonctionnalité métier majeure.
+
+### Impact
+
+- Les consommateurs peuvent s’appuyer sur SemVer 1.x pour la surface exportée à la racine ; les contrôles qualité et la checklist release sont explicités.
+
 ## 2026-04-04 — feature 07_query_services_and_public_api
 
 ### Modifications

@@ -19,6 +19,6 @@ coverage html
 coverage xml
 ```
 
-Le seuil minimal de couverture est fixé à **90 %** (`fail_under` dans `pyproject.toml`).
+Le seuil minimal de couverture est fixé à **95 %** (`fail_under` dans `pyproject.toml`).
 
 Les fichiers générés sont ignorés par Git (voir `.gitignore`).

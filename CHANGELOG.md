@@ -4,6 +4,18 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.0.0] - 2026-04-04
+
+### Summary
+
+Première version **stable** : périmètre fonctionnel couvert par les features 00–07, documentation consolidée (`README`, `docs/RELEASE.md`), métadonnées de packaging (PyPI classifiers `Production/Stable`, URLs dépôt), seuil de couverture relevé à **95 %**, et clarification de la stabilité de l’API exportée au niveau racine.
+
+### Changed
+
+- `ParentChildRelationshipRules.validate` : branchement `if` / `elif` / `else` avec assertion d’exhaustivité sur le kind (couverture à 100 %).
+- `pyproject.toml` : `fail_under` couverture à **95 %** ; liens `Repository` / `Documentation` / `Issues` alignés sur le dépôt effectif.
+- Documentation : seuil de couverture porté à 95 % dans `docs/001_specifications.md`, `docs/000_dev_constraints.md` et `docs/tests/coverage/README.md`.
+
 ## [0.8.0] - 2026-04-04
 
 ### Added
