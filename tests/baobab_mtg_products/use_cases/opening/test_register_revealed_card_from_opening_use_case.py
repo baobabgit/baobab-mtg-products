@@ -1,0 +1,224 @@
+"""Tests pour :class:`RegisterRevealedCardFromOpeningUseCase`."""
+
+from typing import Dict, List, Optional, Set, Tuple
+
+import pytest
+
+from baobab_mtg_products.domain.opening.external_card_id import ExternalCardId
+from baobab_mtg_products.domain.opening.revealed_card_trace import RevealedCardTrace
+from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
+from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
+from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
+from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
+from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_status import ProductStatus
+from baobab_mtg_products.domain.products.product_type import ProductType
+from baobab_mtg_products.exceptions.opening.duplicate_revealed_card_trace_error import (
+    DuplicateRevealedCardTraceError,
+)
+from baobab_mtg_products.exceptions.opening.product_not_opened_for_card_trace_error import (
+    ProductNotOpenedForCardTraceError,
+)
+from baobab_mtg_products.exceptions.registration.product_not_found_for_workflow_error import (
+    ProductNotFoundForWorkflowError,
+)
+from baobab_mtg_products.use_cases.opening.register_revealed_card_from_opening_use_case import (
+    RegisterRevealedCardFromOpeningUseCase,
+)
+
+
+class _Repo:
+    """Dépôt produit."""
+
+    def __init__(self) -> None:
+        self.by_id: Dict[str, ProductInstance] = {}
+
+    def find_by_id(self, product_id: InternalProductId) -> Optional[ProductInstance]:
+        """Voir :class:`ProductRepositoryPort`."""
+        return self.by_id.get(product_id.value)
+
+    def find_by_commercial_barcode(
+        self,
+        barcode: CommercialBarcode,
+    ) -> Optional[ProductInstance]:
+        """Non utilisé."""
+        del barcode
+
+    def find_by_internal_barcode(
+        self,
+        barcode: InternalBarcode,
+    ) -> Optional[ProductInstance]:
+        """Non utilisé."""
+        del barcode
+
+    def save(self, product: ProductInstance) -> None:
+        """Voir :class:`ProductRepositoryPort`."""
+        self.by_id[product.internal_id.value] = product
+
+
+class _TraceRepo:
+    """Traces en mémoire."""
+
+    def __init__(self) -> None:
+        self.traces: List[RevealedCardTrace] = []
+        self._pairs: Set[Tuple[str, str]] = set()
+
+    def count_traces_for_product(self, product_id: InternalProductId) -> int:
+        """Voir :class:`RevealedCardTraceRepositoryPort`."""
+        return sum(1 for t in self.traces if t.source_product_id.value == product_id.value)
+
+    def has_trace_for_product_and_card(
+        self,
+        product_id: InternalProductId,
+        external_card_id: ExternalCardId,
+    ) -> bool:
+        """Voir :class:`RevealedCardTraceRepositoryPort`."""
+        return (product_id.value, external_card_id.value) in self._pairs
+
+    def append_trace(self, trace: RevealedCardTrace) -> None:
+        """Voir :class:`RevealedCardTraceRepositoryPort`."""
+        self.traces.append(trace)
+        self._pairs.add((trace.source_product_id.value, trace.external_card_id.value))
+
+
+class _Events:
+    """Journal."""
+
+    def __init__(self) -> None:
+        self.revealed: List[Tuple[str, str, int]] = []
+
+    def record_scan(self, *args: object) -> None:
+        """Non utilisé."""
+        del args
+
+    def record_registration(self, product_id: str) -> None:
+        """Non utilisé."""
+        del product_id
+
+    def record_product_qualified(self, product_id: str) -> None:
+        """Non utilisé."""
+        del product_id
+
+    def record_product_attached_to_parent(
+        self,
+        child_id: str,
+        parent_id: str,
+        relationship_kind: str,
+    ) -> None:
+        """Non utilisé."""
+        del child_id, parent_id, relationship_kind
+
+    def record_product_detached_from_parent(
+        self,
+        child_id: str,
+        previous_parent_id: str,
+    ) -> None:
+        """Non utilisé."""
+        del child_id, previous_parent_id
+
+    def record_product_opened(self, product_id: str) -> None:
+        """Non utilisé."""
+        del product_id
+
+    def record_card_revealed_from_opening(
+        self,
+        product_id: str,
+        external_card_id: str,
+        sequence_in_opening: int,
+    ) -> None:
+        """Voir :class:`ProductWorkflowEventRecorderPort`."""
+        self.revealed.append((product_id, external_card_id, sequence_in_opening))
+
+    def record_opening_card_scan(self, product_id: str, scan_payload: str) -> None:
+        """Non utilisé."""
+        del product_id, scan_payload
+
+
+def _opened() -> ProductInstance:
+    return ProductInstance(
+        InternalProductId("o1"),
+        ProductType.COLLECTOR_BOOSTER,
+        MtgSetCode("TS"),
+        ProductStatus.OPENED,
+    )
+
+
+class TestRegisterRevealedCardFromOpeningUseCase:
+    """Enregistrement des cartes révélées."""
+
+    def test_registers_sequence_and_event(self) -> None:
+        """Première puis deuxième carte."""
+        repo = _Repo()
+        prod = _opened()
+        repo.save(prod)
+        traces = _TraceRepo()
+        events = _Events()
+        uc = RegisterRevealedCardFromOpeningUseCase
+        t0 = uc(
+            prod.internal_id,
+            ExternalCardId("c-a"),
+            repo,
+            traces,
+            events,
+        ).execute()
+        assert t0.sequence_in_opening == 0
+        t1 = uc(
+            prod.internal_id,
+            ExternalCardId("c-b"),
+            repo,
+            traces,
+            events,
+        ).execute()
+        assert t1.sequence_in_opening == 1
+        assert events.revealed == [
+            ("o1", "c-a", 0),
+            ("o1", "c-b", 1),
+        ]
+
+    def test_rejects_when_not_opened(self) -> None:
+        """Produit encore scellé."""
+        repo = _Repo()
+        sealed = ProductInstance(
+            InternalProductId("s1"),
+            ProductType.PLAY_BOOSTER,
+            MtgSetCode("TS"),
+            ProductStatus.SEALED,
+        )
+        repo.save(sealed)
+        with pytest.raises(ProductNotOpenedForCardTraceError):
+            RegisterRevealedCardFromOpeningUseCase(
+                sealed.internal_id,
+                ExternalCardId("c"),
+                repo,
+                _TraceRepo(),
+                _Events(),
+            ).execute()
+
+    def test_rejects_duplicate_card(self) -> None:
+        """Même carte deux fois."""
+        repo = _Repo()
+        prod = _opened()
+        repo.save(prod)
+        traces = _TraceRepo()
+        ev = _Events()
+        uc = RegisterRevealedCardFromOpeningUseCase(
+            prod.internal_id,
+            ExternalCardId("dup"),
+            repo,
+            traces,
+            ev,
+        )
+        uc.execute()
+        with pytest.raises(DuplicateRevealedCardTraceError):
+            uc.execute()
+
+    def test_missing_product(self) -> None:
+        """Produit inconnu."""
+        with pytest.raises(ProductNotFoundForWorkflowError):
+            RegisterRevealedCardFromOpeningUseCase(
+                InternalProductId("nope"),
+                ExternalCardId("c"),
+                _Repo(),
+                _TraceRepo(),
+                _Events(),
+            ).execute()

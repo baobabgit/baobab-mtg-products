@@ -9,6 +9,9 @@ from baobab_mtg_products.ports.product_repository_port import ProductRepositoryP
 from baobab_mtg_products.ports.product_workflow_event_recorder_port import (
     ProductWorkflowEventRecorderPort,
 )
+from baobab_mtg_products.ports.revealed_card_trace_repository_port import (
+    RevealedCardTraceRepositoryPort,
+)
 from baobab_mtg_products.ports.statistics_port import StatisticsPort
 
 __all__ = [
@@ -17,5 +20,6 @@ __all__ = [
     "InternalProductIdFactoryPort",
     "ProductRepositoryPort",
     "ProductWorkflowEventRecorderPort",
+    "RevealedCardTraceRepositoryPort",
     "StatisticsPort",
 ]

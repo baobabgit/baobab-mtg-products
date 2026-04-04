@@ -65,7 +65,7 @@ from baobab_mtg_products.use_cases.registration import (
 # result = use_case.execute()  # existing | new_known_from_catalog | new_pending_qualification
 ```
 
-Les sous-packages `domain.products`, `domain.registration`, `ports` et `use_cases` portent le **modèle**, les **DTO du flux scan**, les **contrats d’intégration** et les **cas d’usage** métier.
+Les sous-packages `domain.products`, `domain.registration`, `domain.opening`, `ports` et `use_cases` portent le **modèle**, les **DTO des flux scan et ouverture**, les **contrats d’intégration** et les **cas d’usage** métier.
 
 ### Relations parent / enfant (aperçu)
 
@@ -88,6 +88,27 @@ from baobab_mtg_products.domain.products import ProductRelationship
 ```
 
 Les événements `record_product_attached_to_parent` / `record_product_detached_from_parent` complètent le journal déjà utilisé pour les scans.
+
+### Ouverture et cartes révélées (aperçu)
+
+Un produit **ouvrable** (tout type sauf `DISPLAY`) au statut `sealed` ou `qualified` peut être passé à `opened` une seule fois. Les cartes sont rattachées via `ExternalCardId` (opaque pour la lib) et persistées par un adaptateur de `RevealedCardTraceRepositoryPort` ; les scans bruts pendant la session passent par `OpeningCardScanPayload` et `record_opening_card_scan`.
+
+```python
+from baobab_mtg_products import (
+    ExternalCardId,
+    OpenSealedProductUseCase,
+    RecordOpeningCardScanUseCase,
+    RegisterRevealedCardFromOpeningUseCase,
+    OpeningCardScanPayload,
+)
+
+# open_uc = OpenSealedProductUseCase(product_id, repo, events)
+# outcome = open_uc.execute()  # statut opened + ProductOpeningEvent
+# RegisterRevealedCardFromOpeningUseCase(pid, ExternalCardId("…"), repo, trace_repo, events).execute()
+# RecordOpeningCardScanUseCase(pid, OpeningCardScanPayload("…"), repo, events).execute()
+```
+
+Le package `domain.opening` regroupe les value objects et règles ; `ports` expose `RevealedCardTraceRepositoryPort`.
 
 ## Qualité et tests
 
