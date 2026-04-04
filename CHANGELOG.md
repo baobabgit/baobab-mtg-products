@@ -4,6 +4,19 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.2.0] - 2026-04-04
+
+### Added
+
+- Modèle de référence produit : `ProductType`, `ProductStatus`, `ProductInstance`.
+- Value objects : `InternalProductId`, `MtgSetCode`, `CommercialBarcode`, `InternalBarcode`, `SerialNumber`.
+- Exceptions domaine produit sous `exceptions.product` (réexportées depuis `baobab_mtg_products.exceptions`).
+- Exports publics racine pour les symboles ci-dessus.
+
+### Changed
+
+- `pylint` : plafonds `max-args` / `max-positional-arguments` relevés ; désactivation de `duplicate-code` pour les listes `__all__` répétées.
+
 ## [0.1.0] - 2026-04-04
 
 ### Added
