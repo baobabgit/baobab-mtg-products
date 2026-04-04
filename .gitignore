@@ -243,6 +243,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+dist-check/
 downloads/
 eggs/
 .eggs/
@@ -407,3 +408,9 @@ poetry.toml
 pyrightconfig.json
 
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm,pycharm+iml,pycharm+all
+
+# Couverture (sorties configurées dans docs/tests/coverage)
+docs/tests/coverage/.coverage
+docs/tests/coverage/html/
+docs/tests/coverage/coverage.xml
+docs/tests/coverage/*.json
