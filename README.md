@@ -67,6 +67,28 @@ from baobab_mtg_products.use_cases.registration import (
 
 Les sous-packages `domain.products`, `domain.registration`, `ports` et `use_cases` portent le **modèle**, les **DTO du flux scan**, les **contrats d’intégration** et les **cas d’usage** métier.
 
+### Relations parent / enfant (aperçu)
+
+Un booster peut rester sans `parent_id` ; pour le rattacher à une display ou placer un sous-produit sous un bundle, utiliser les cas d’usage dédiés (types compatibles selon `ProductRelationshipKind`, pas de cycle, enfant sans parent préalable) :
+
+```python
+from baobab_mtg_products import (
+    AttachChildProductToParentUseCase,
+    DetachChildProductFromParentUseCase,
+    InternalProductId,
+    ProductRelationshipKind,
+)
+from baobab_mtg_products.domain.products import ProductRelationship
+
+# attach = AttachChildProductToParentUseCase(
+#     parent_id, child_id, ProductRelationshipKind.DISPLAY_CONTAINS_BOOSTER, repo, events
+# )
+# link: ProductRelationship = attach.execute()
+# DetachChildProductFromParentUseCase(child_id, repo, events).execute()
+```
+
+Les événements `record_product_attached_to_parent` / `record_product_detached_from_parent` complètent le journal déjà utilisé pour les scans.
+
 ## Qualité et tests
 
 ```bash

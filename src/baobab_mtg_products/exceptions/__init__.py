@@ -16,10 +16,25 @@ from baobab_mtg_products.exceptions.registration import (
     InvalidQualificationStateError,
     ProductNotFoundForWorkflowError,
 )
+from baobab_mtg_products.exceptions.relationship import (
+    ChildProductNotAttachedError,
+    CircularProductParentageError,
+    DetachParentMismatchError,
+    IncompleteProductHierarchyError,
+    IncompatibleParentChildTypesError,
+    InvalidProductRelationshipLinkError,
+    ProductAlreadyHasParentError,
+)
 
 __all__ = [
     "AmbiguousBarcodeResolutionError",
     "BaobabMtgProductsException",
+    "ChildProductNotAttachedError",
+    "CircularProductParentageError",
+    "DetachParentMismatchError",
+    "IncompleteProductHierarchyError",
+    "IncompatibleParentChildTypesError",
+    "InvalidProductRelationshipLinkError",
     "InvalidCommercialBarcodeError",
     "InvalidInternalBarcodeError",
     "InvalidProductIdentifierError",
@@ -27,5 +42,6 @@ __all__ = [
     "InvalidQualificationStateError",
     "InvalidSerialNumberError",
     "InvalidSetCodeError",
+    "ProductAlreadyHasParentError",
     "ProductNotFoundForWorkflowError",
 ]

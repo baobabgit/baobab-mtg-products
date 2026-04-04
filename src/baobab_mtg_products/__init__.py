@@ -13,24 +13,34 @@ from baobab_mtg_products.domain.products import (
     InternalProductId,
     MtgSetCode,
     ProductInstance,
+    ProductRelationship,
+    ProductRelationshipKind,
     ProductStatus,
     ProductType,
     SerialNumber,
+)
+from baobab_mtg_products.use_cases.parent_child import (
+    AttachChildProductToParentUseCase,
+    DetachChildProductFromParentUseCase,
 )
 from baobab_mtg_products.exceptions import BaobabMtgProductsException
 
 try:
     __version__: str = version("baobab-mtg-products")
 except PackageNotFoundError:
-    __version__ = "0.3.0"
+    __version__ = "0.4.0"
 
 __all__ = [
+    "AttachChildProductToParentUseCase",
     "BaobabMtgProductsException",
     "CommercialBarcode",
+    "DetachChildProductFromParentUseCase",
     "InternalBarcode",
     "InternalProductId",
     "MtgSetCode",
     "ProductInstance",
+    "ProductRelationship",
+    "ProductRelationshipKind",
     "ProductStatus",
     "ProductType",
     "SerialNumber",
