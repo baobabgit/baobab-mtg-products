@@ -4,6 +4,14 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.6.0] - 2026-04-04
+
+### Added
+
+- Historique métier : `domain.history` avec modèle d’événements (`ProductBusinessEventKind`, `ProductBusinessEventRecord`, `ProductBusinessEventPayload`) et `InMemoryProductBusinessEventLedger` (append-only, cohérence minimale).
+- Port `ProductBusinessHistoryQueryPort` et cas d’usage `ListProductBusinessHistoryUseCase`.
+- Exception `ProductHistoryCoherenceError` (réexportée depuis `baobab_mtg_products.exceptions`).
+
 ## [0.5.0] - 2026-04-04
 
 ### Added

@@ -2,6 +2,20 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-04-04 — feature 05_history_and_event_log
+
+### Modifications
+
+- Branche `feature/history-event-log` : package `domain.history` (`ProductBusinessEventKind`, `ProductBusinessEventPayload`, `ProductBusinessEventRecord`, `InMemoryProductBusinessEventLedger`) ; port `ProductBusinessHistoryQueryPort` ; cas d’usage `ListProductBusinessHistoryUseCase` ; exception `ProductHistoryCoherenceError` ; le ledger implémente aussi `ProductWorkflowEventRecorderPort` avec contrôles de cohérence ; version `0.6.0`.
+
+### Buts
+
+- Centraliser les traces métier (scan, enregistrement, qualification, rattachement, ouverture, cartes) dans un journal ordonné, consultable par produit, avec rejets explicites des séquences incohérentes.
+
+### Impact
+
+- Les applications peuvent injecter le ledger comme implémentation unique du journal d’événements workflow ; pas de bus externe ni persistance distribuée dans la lib.
+
 ## 2026-04-04 — feature 04_opening_and_card_traceability
 
 ### Modifications

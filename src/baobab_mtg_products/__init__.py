@@ -7,6 +7,11 @@ moteur de règles ni deckbuilding.
 
 from importlib.metadata import PackageNotFoundError, version
 
+from baobab_mtg_products.domain.history import (
+    InMemoryProductBusinessEventLedger,
+    ProductBusinessEventKind,
+    ProductBusinessEventRecord,
+)
 from baobab_mtg_products.domain.opening import (
     ExternalCardId,
     OpenSealedProductOutcome,
@@ -27,6 +32,7 @@ from baobab_mtg_products.domain.products import (
     SerialNumber,
 )
 from baobab_mtg_products.exceptions import BaobabMtgProductsException
+from baobab_mtg_products.use_cases.history import ListProductBusinessHistoryUseCase
 from baobab_mtg_products.use_cases.opening import (
     OpenSealedProductUseCase,
     RecordOpeningCardScanUseCase,
@@ -40,7 +46,7 @@ from baobab_mtg_products.use_cases.parent_child import (
 try:
     __version__: str = version("baobab-mtg-products")
 except PackageNotFoundError:
-    __version__ = "0.5.0"
+    __version__ = "0.6.0"
 
 __all__ = [
     "AttachChildProductToParentUseCase",
@@ -48,9 +54,13 @@ __all__ = [
     "CommercialBarcode",
     "DetachChildProductFromParentUseCase",
     "ExternalCardId",
+    "InMemoryProductBusinessEventLedger",
     "InternalBarcode",
     "InternalProductId",
+    "ListProductBusinessHistoryUseCase",
     "MtgSetCode",
+    "ProductBusinessEventKind",
+    "ProductBusinessEventRecord",
     "OpenSealedProductOutcome",
     "OpenSealedProductUseCase",
     "OpeningCardScanPayload",
