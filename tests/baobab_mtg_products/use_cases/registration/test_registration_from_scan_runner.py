@@ -121,6 +121,23 @@ class _FakeEvents:
         """Voir :class:`ProductWorkflowEventRecorderPort`."""
         self.quals.append(product_id)
 
+    def record_product_attached_to_parent(
+        self,
+        child_id: str,
+        parent_id: str,
+        relationship_kind: str,
+    ) -> None:
+        """Voir :class:`ProductWorkflowEventRecorderPort`."""
+        del child_id, parent_id, relationship_kind
+
+    def record_product_detached_from_parent(
+        self,
+        child_id: str,
+        previous_parent_id: str,
+    ) -> None:
+        """Voir :class:`ProductWorkflowEventRecorderPort`."""
+        del child_id, previous_parent_id
+
 
 class TestRegistrationFromScanRunner:
     """Branches principales du flux scan → persistance."""

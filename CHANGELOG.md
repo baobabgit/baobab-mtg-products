@@ -4,6 +4,15 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.4.0] - 2026-04-04
+
+### Added
+
+- Relations parent / enfant : `ProductRelationshipKind`, `ProductRelationship`, `ParentChildRelationshipRules`, `ProductAncestorChain`.
+- Cas d’usage `AttachChildProductToParentUseCase` et `DetachChildProductFromParentUseCase` (`use_cases.parent_child`).
+- Exceptions `InvalidProductRelationshipLinkError`, `IncompatibleParentChildTypesError`, `ProductAlreadyHasParentError`, `CircularProductParentageError`, `IncompleteProductHierarchyError`, `ChildProductNotAttachedError`, `DetachParentMismatchError` (réexportées depuis `baobab_mtg_products.exceptions`).
+- Port `ProductWorkflowEventRecorderPort` : `record_product_attached_to_parent`, `record_product_detached_from_parent`.
+
 ## [0.3.0] - 2026-04-04
 
 ### Added

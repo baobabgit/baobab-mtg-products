@@ -7,6 +7,12 @@ from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
+from baobab_mtg_products.domain.products.relationships import (
+    ParentChildRelationshipRules,
+    ProductAncestorChain,
+    ProductRelationship,
+    ProductRelationshipKind,
+)
 from baobab_mtg_products.domain.products.serial_number import SerialNumber
 
 __all__ = [
@@ -14,7 +20,11 @@ __all__ = [
     "InternalBarcode",
     "InternalProductId",
     "MtgSetCode",
+    "ParentChildRelationshipRules",
+    "ProductAncestorChain",
     "ProductInstance",
+    "ProductRelationship",
+    "ProductRelationshipKind",
     "ProductStatus",
     "ProductType",
     "SerialNumber",

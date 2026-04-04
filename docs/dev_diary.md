@@ -2,6 +2,20 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-04-04 — feature 03_parent_child_relationships
+
+### Modifications
+
+- Branche `feature/parent-child-relationships` : package `domain.products.relationships` (`ProductRelationshipKind`, `ProductRelationship`, `ParentChildRelationshipRules`, `ProductAncestorChain`) ; cas d’usage `AttachChildProductToParentUseCase`, `DetachChildProductFromParentUseCase` ; exceptions sous `exceptions.relationship` ; extension du port `ProductWorkflowEventRecorderPort` (événements attach / detach) ; tests miroirs ; version `0.4.0`.
+
+### Buts
+
+- Modéliser les rattachements structurels (display → booster, bundle → sous-produits, lien générique), rejeter cycles / types incohérents / enfant déjà rattaché, permettre un booster sans parent et journaliser attach / detach.
+
+### Impact
+
+- Les adaptateurs d’événements doivent implémenter les deux nouvelles méthodes du port ; la hiérarchie reste portée par `ProductInstance.parent_id`.
+
 ## 2026-04-04 — feature 02_registration_and_scan_workflow
 
 ### Modifications

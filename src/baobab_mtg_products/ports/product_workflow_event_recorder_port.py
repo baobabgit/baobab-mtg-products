@@ -35,3 +35,34 @@ class ProductWorkflowEventRecorderPort(Protocol):
         :type product_id: str
         """
         ...
+
+    def record_product_attached_to_parent(
+        self,
+        child_id: str,
+        parent_id: str,
+        relationship_kind: str,
+    ) -> None:
+        """Enregistre un rattachement structurel enfant → parent.
+
+        :param child_id: Identifiant interne de l'enfant.
+        :type child_id: str
+        :param parent_id: Identifiant interne du parent.
+        :type parent_id: str
+        :param relationship_kind: Valeur d'énumération du type de lien (chaîne stable).
+        :type relationship_kind: str
+        """
+        ...
+
+    def record_product_detached_from_parent(
+        self,
+        child_id: str,
+        previous_parent_id: str,
+    ) -> None:
+        """Enregistre la suppression du lien vers le parent.
+
+        :param child_id: Identifiant interne de l'ancien enfant.
+        :type child_id: str
+        :param previous_parent_id: Identifiant du parent au moment du détachement.
+        :type previous_parent_id: str
+        """
+        ...
