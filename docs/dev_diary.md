@@ -2,6 +2,20 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-04-04 — feature 07_query_services_and_public_api
+
+### Modifications
+
+- Branche `feature/query-services-public-api` : package `services.query` (`GetSealedProductSnapshotService`, `GetProductStructuralViewService`, `GetProductBusinessTimelineService`) ; `domain.query.ProductStructuralView` ; extension `ProductRepositoryPort.list_direct_children_of_parent` ; exceptions `ProductNotFoundForQueryError`, `MissingReferencedParentProductError` ; réorganisation des exports du package racine (ports clés + consultation) ; tests miroirs et doubles de dépôt mis à jour ; version `0.8.0`.
+
+### Buts
+
+- Offrir des entrées de lecture métier explicites et une surface publique Python documentée, sans HTTP ni recherche multi-critères persistée.
+
+### Impact
+
+- Les adaptateurs de dépôt doivent implémenter `list_direct_children_of_parent` ; `ListProductBusinessHistoryUseCase` reste disponible sous `use_cases.history` mais n’est plus exporté à la racine.
+
 ## 2026-04-04 — feature 06_integration_ports_collection_statistics
 
 ### Modifications

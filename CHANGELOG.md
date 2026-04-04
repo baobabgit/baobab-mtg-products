@@ -4,6 +4,19 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.8.0] - 2026-04-04
+
+### Added
+
+- Package `services.query` : `GetSealedProductSnapshotService`, `GetProductStructuralViewService`, `GetProductBusinessTimelineService` (consultation métier via `load()`).
+- `domain.query.ProductStructuralView` : vue produit + parent résolu + enfants directs.
+- Port `ProductRepositoryPort` : `list_direct_children_of_parent` pour alimenter les vues structurelles.
+- Exceptions `ProductNotFoundForQueryError`, `MissingReferencedParentProductError` (réexportées depuis `baobab_mtg_products.exceptions`).
+
+### Changed
+
+- API publique du package racine : exports des services de consultation, de `ProductStructuralView`, des ports `ProductRepositoryPort`, `ProductBusinessHistoryQueryPort`, `CollectionPort`, `StatisticsPort`, et des exceptions de consultation ; retrait de `ListProductBusinessHistoryUseCase` des exports racine (toujours disponible sous `use_cases.history`).
+
 ## [0.7.0] - 2026-04-04
 
 ### Added

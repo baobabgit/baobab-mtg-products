@@ -65,7 +65,7 @@ from baobab_mtg_products.use_cases.registration import (
 # result = use_case.execute()  # existing | new_known_from_catalog | new_pending_qualification
 ```
 
-Les sous-packages `domain.products`, `domain.registration`, `domain.opening`, `domain.history`, `domain.integration`, `ports` et `use_cases` portent le **modèle**, les **DTO des flux scan, ouverture, historique et intégration collection/stats**, les **contrats d’intégration** et les **cas d’usage** métier.
+Les sous-packages `domain.products`, `domain.registration`, `domain.opening`, `domain.history`, `domain.integration`, `domain.query`, `ports`, `services` et `use_cases` portent le **modèle**, les **DTO** (flux, intégration, vues de lecture), les **contrats** et les **cas d’usage / services** métier.
 
 Les adaptateurs **collection** et **statistiques** implémentent `CollectionPort` et `StatisticsPort` ; les cas d’usage concernés les prennent en **injection optionnelle** (`None` par défaut) et émettent des DTO stables après succès (provenance, lien parent-enfant, faits d’ouverture / révélation / scan carte).
 
@@ -112,17 +112,34 @@ from baobab_mtg_products import (
 
 Le package `domain.opening` regroupe les value objects et règles ; `ports` expose `RevealedCardTraceRepositoryPort`.
 
-### Historique métier et journal interne (aperçu)
+### Consultation produit, structure et historique (aperçu)
 
-`InMemoryProductBusinessEventLedger` implémente `ProductWorkflowEventRecorderPort` : chaque appel `record_*` produit une entrée typée (`ProductBusinessEventKind`) avec charge utile optionnelle. Le ledger refuse les doublons interdits (ex. second enregistrement, ouverture sans scan ni enregistrement préalable, carte sans ouverture journalisée, rattachement incohérent). La consultation passe par `ProductBusinessHistoryQueryPort` / `ListProductBusinessHistoryUseCase` (vue enfant + événements où le produit apparaît comme parent pour attach / detach).
+Les **services** `GetSealedProductSnapshotService`, `GetProductStructuralViewService` et `GetProductBusinessTimelineService` offrent des points d’entrée lisibles (méthode `load()`) sans exposer un CRUD générique. Ils s’appuient sur `ProductRepositoryPort` (étendu avec `list_direct_children_of_parent` pour les enfants directs) et sur `ProductBusinessHistoryQueryPort` pour la chronologie.
 
 ```python
-from baobab_mtg_products import InMemoryProductBusinessEventLedger, ListProductBusinessHistoryUseCase
+from baobab_mtg_products import (
+    GetProductBusinessTimelineService,
+    GetProductStructuralViewService,
+    GetSealedProductSnapshotService,
+    InternalProductId,
+)
+
+# snapshot = GetSealedProductSnapshotService(InternalProductId("…"), repo).load()
+# struct = GetProductStructuralViewService(InternalProductId("…"), repo).load()
+# # struct.product, struct.parent, struct.direct_children
+```
+
+### Historique métier et journal interne (aperçu)
+
+`InMemoryProductBusinessEventLedger` implémente `ProductWorkflowEventRecorderPort` : chaque appel `record_*` produit une entrée typée (`ProductBusinessEventKind`) avec charge utile optionnelle. Le ledger refuse les doublons interdits (ex. second enregistrement, ouverture sans scan ni enregistrement préalable, carte sans ouverture journalisée, rattachement incohérent). La **lecture** de la chronologie se fait via `GetProductBusinessTimelineService` (export racine) ou, pour compatibilité, `ListProductBusinessHistoryUseCase` sous `baobab_mtg_products.use_cases.history`.
+
+```python
+from baobab_mtg_products import GetProductBusinessTimelineService, InMemoryProductBusinessEventLedger
 from baobab_mtg_products.domain.products import InternalProductId
 
 # ledger = InMemoryProductBusinessEventLedger()
 # runner = RegistrationFromScanRunner(repo, resolution, id_factory, ledger)
-# events = ListProductBusinessHistoryUseCase(InternalProductId("…"), ledger).execute()
+# timeline = GetProductBusinessTimelineService(InternalProductId("…"), ledger).load()
 ```
 
 ## Qualité et tests

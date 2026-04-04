@@ -61,6 +61,19 @@ class _FakeRepo:
         if product.internal_barcode is not None:
             self.by_int[product.internal_barcode.value] = product
 
+    def list_direct_children_of_parent(
+        self,
+        parent_id: InternalProductId,
+    ) -> tuple[ProductInstance, ...]:
+        """Voir :class:`ProductRepositoryPort`."""
+        kids = [
+            p
+            for p in self.by_id.values()
+            if p.parent_id is not None and p.parent_id.value == parent_id.value
+        ]
+        kids.sort(key=lambda p: p.internal_id.value)
+        return tuple(kids)
+
 
 class _FakeResolution:
     """Double de résolution catalogue paramétrable."""
