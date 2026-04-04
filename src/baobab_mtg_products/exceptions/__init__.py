@@ -11,6 +11,9 @@ from baobab_mtg_products.exceptions.product import (
     InvalidSerialNumberError,
     InvalidSetCodeError,
 )
+from baobab_mtg_products.exceptions.history import (
+    ProductHistoryCoherenceError,
+)
 from baobab_mtg_products.exceptions.opening import (
     DuplicateRevealedCardTraceError,
     InvalidExternalCardIdError,
@@ -58,6 +61,7 @@ __all__ = [
     "InvalidSetCodeError",
     "ProductAlreadyHasParentError",
     "ProductAlreadyOpenedError",
+    "ProductHistoryCoherenceError",
     "ProductNotFoundForWorkflowError",
     "ProductNotOpenableError",
     "ProductNotOpenedForCardTraceError",

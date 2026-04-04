@@ -1,6 +1,9 @@
 """Ports (interfaces) vers la collection, les statistiques et l'extérieur."""
 
 from baobab_mtg_products.ports.barcode_resolution_port import BarcodeResolutionPort
+from baobab_mtg_products.ports.product_business_history_query_port import (
+    ProductBusinessHistoryQueryPort,
+)
 from baobab_mtg_products.ports.collection_port import CollectionPort
 from baobab_mtg_products.ports.internal_product_id_factory_port import (
     InternalProductIdFactoryPort,
@@ -16,6 +19,7 @@ from baobab_mtg_products.ports.statistics_port import StatisticsPort
 
 __all__ = [
     "BarcodeResolutionPort",
+    "ProductBusinessHistoryQueryPort",
     "CollectionPort",
     "InternalProductIdFactoryPort",
     "ProductRepositoryPort",

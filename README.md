@@ -65,7 +65,7 @@ from baobab_mtg_products.use_cases.registration import (
 # result = use_case.execute()  # existing | new_known_from_catalog | new_pending_qualification
 ```
 
-Les sous-packages `domain.products`, `domain.registration`, `domain.opening`, `ports` et `use_cases` portent le **modèle**, les **DTO des flux scan et ouverture**, les **contrats d’intégration** et les **cas d’usage** métier.
+Les sous-packages `domain.products`, `domain.registration`, `domain.opening`, `domain.history`, `ports` et `use_cases` portent le **modèle**, les **DTO des flux scan, ouverture et historique**, les **contrats d’intégration** et les **cas d’usage** métier.
 
 ### Relations parent / enfant (aperçu)
 
@@ -109,6 +109,19 @@ from baobab_mtg_products import (
 ```
 
 Le package `domain.opening` regroupe les value objects et règles ; `ports` expose `RevealedCardTraceRepositoryPort`.
+
+### Historique métier et journal interne (aperçu)
+
+`InMemoryProductBusinessEventLedger` implémente `ProductWorkflowEventRecorderPort` : chaque appel `record_*` produit une entrée typée (`ProductBusinessEventKind`) avec charge utile optionnelle. Le ledger refuse les doublons interdits (ex. second enregistrement, ouverture sans scan ni enregistrement préalable, carte sans ouverture journalisée, rattachement incohérent). La consultation passe par `ProductBusinessHistoryQueryPort` / `ListProductBusinessHistoryUseCase` (vue enfant + événements où le produit apparaît comme parent pour attach / detach).
+
+```python
+from baobab_mtg_products import InMemoryProductBusinessEventLedger, ListProductBusinessHistoryUseCase
+from baobab_mtg_products.domain.products import InternalProductId
+
+# ledger = InMemoryProductBusinessEventLedger()
+# runner = RegistrationFromScanRunner(repo, resolution, id_factory, ledger)
+# events = ListProductBusinessHistoryUseCase(InternalProductId("…"), ledger).execute()
+```
 
 ## Qualité et tests
 
