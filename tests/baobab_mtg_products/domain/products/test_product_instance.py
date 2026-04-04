@@ -75,3 +75,15 @@ class TestProductInstance:
                 parent_id=pid,
             )
         assert "parent" in exc.value.message.lower()
+
+    def test_derived_with_replaces_selected_fields(self) -> None:
+        """:meth:`derived_with` conserve l'identité et met à jour les champs passés."""
+        base = self._minimal_instance()
+        derived = base.derived_with(
+            status=ProductStatus.QUALIFIED,
+            product_type=ProductType.COLLECTOR_BOOSTER,
+        )
+        assert derived.internal_id.value == base.internal_id.value
+        assert derived.status is ProductStatus.QUALIFIED
+        assert derived.product_type is ProductType.COLLECTOR_BOOSTER
+        assert derived.set_code.value == base.set_code.value

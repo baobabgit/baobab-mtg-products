@@ -22,7 +22,7 @@ from baobab_mtg_products.exceptions import BaobabMtgProductsException
 try:
     __version__: str = version("baobab-mtg-products")
 except PackageNotFoundError:
-    __version__ = "0.2.0"
+    __version__ = "0.3.0"
 
 __all__ = [
     "BaobabMtgProductsException",

@@ -11,13 +11,21 @@ from baobab_mtg_products.exceptions.product import (
     InvalidSerialNumberError,
     InvalidSetCodeError,
 )
+from baobab_mtg_products.exceptions.registration import (
+    AmbiguousBarcodeResolutionError,
+    InvalidQualificationStateError,
+    ProductNotFoundForWorkflowError,
+)
 
 __all__ = [
+    "AmbiguousBarcodeResolutionError",
     "BaobabMtgProductsException",
     "InvalidCommercialBarcodeError",
     "InvalidInternalBarcodeError",
     "InvalidProductIdentifierError",
     "InvalidProductInstanceError",
+    "InvalidQualificationStateError",
     "InvalidSerialNumberError",
     "InvalidSetCodeError",
+    "ProductNotFoundForWorkflowError",
 ]

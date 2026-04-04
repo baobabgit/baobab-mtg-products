@@ -2,6 +2,21 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-04-04 — feature 02_registration_and_scan_workflow
+
+### Modifications
+
+- Branche `feature/registration-scan-workflow` : ports dépôt / résolution barcode / fabrique d’ids / journal d’événements ; runner `RegistrationFromScanRunner` ; cas d’usage scan commercial, scan interne et qualification ; package `domain.registration` ; exceptions dédiées.
+- `ProductInstance.derived_with` pour qualification sans mutation ; tests avec doubles mémoire ; version `0.3.0`.
+
+### Buts
+
+- Permettre de créer ou de retrouver un produit après scan, distinguer connu / nouveau qualifié / à qualifier, journaliser scan et enregistrement.
+
+### Impact
+
+- Les adaptateurs externes implémentent les ports ; la librairie reste sans HTTP ni persistance imposée.
+
 ## 2026-04-04 — feature 01_product_reference_model
 
 ### Modifications
