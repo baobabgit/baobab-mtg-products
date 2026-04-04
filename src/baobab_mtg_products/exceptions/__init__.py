@@ -14,6 +14,7 @@ from baobab_mtg_products.exceptions.product import (
 from baobab_mtg_products.exceptions.history import (
     ProductHistoryCoherenceError,
 )
+from baobab_mtg_products.exceptions.integration import InvalidIntegrationPayloadError
 from baobab_mtg_products.exceptions.opening import (
     DuplicateRevealedCardTraceError,
     InvalidExternalCardIdError,
@@ -47,6 +48,7 @@ __all__ = [
     "CircularProductParentageError",
     "DetachParentMismatchError",
     "IncompleteProductHierarchyError",
+    "InvalidIntegrationPayloadError",
     "IncompatibleParentChildTypesError",
     "InvalidProductRelationshipLinkError",
     "InvalidCommercialBarcodeError",

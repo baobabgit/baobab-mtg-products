@@ -2,6 +2,12 @@
 
 from typing import Optional
 
+from baobab_mtg_products.domain.integration.product_parent_link_for_collection_event import (
+    ProductParentLinkForCollectionEvent,
+)
+from baobab_mtg_products.domain.integration.product_provenance_for_collection import (
+    ProductProvenanceForCollection,
+)
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.exceptions.relationship.child_product_not_attached_error import (
     ChildProductNotAttachedError,
@@ -12,6 +18,7 @@ from baobab_mtg_products.exceptions.relationship.detach_parent_mismatch_error im
 from baobab_mtg_products.exceptions.registration.product_not_found_for_workflow_error import (
     ProductNotFoundForWorkflowError,
 )
+from baobab_mtg_products.ports.collection_port import CollectionPort
 from baobab_mtg_products.ports.product_repository_port import ProductRepositoryPort
 from baobab_mtg_products.ports.product_workflow_event_recorder_port import (
     ProductWorkflowEventRecorderPort,
@@ -30,6 +37,8 @@ class DetachChildProductFromParentUseCase(UseCase[None]):
     :type events: ProductWorkflowEventRecorderPort
     :param expected_parent_id: Si fourni, doit coïncider avec le parent actuel.
     :type expected_parent_id: InternalProductId | None
+    :param collection: Synchronisation collection (provenance + levée de lien), si fourni.
+    :type collection: CollectionPort | None
     :raises ProductNotFoundForWorkflowError: si l'enfant est inconnu.
     :raises ChildProductNotAttachedError: si aucun parent n'est défini.
     :raises DetachParentMismatchError: si le parent effectif ne correspond pas.
@@ -42,11 +51,13 @@ class DetachChildProductFromParentUseCase(UseCase[None]):
         events: ProductWorkflowEventRecorderPort,
         *,
         expected_parent_id: Optional[InternalProductId] = None,
+        collection: Optional[CollectionPort] = None,
     ) -> None:
         self._child_id = child_id
         self._repository = repository
         self._events = events
         self._expected_parent_id = expected_parent_id
+        self._collection = collection
 
     def execute(self) -> None:
         """Efface ``parent_id`` et journalise l'ancien parent."""
@@ -68,3 +79,15 @@ class DetachChildProductFromParentUseCase(UseCase[None]):
         updated = child.derived_with(parent_id=None)
         self._repository.save(updated)
         self._events.record_product_detached_from_parent(child.internal_id.value, previous)
+        if self._collection is not None:
+            self._collection.publish_product_provenance(
+                ProductProvenanceForCollection.from_product_instance(updated),
+            )
+            self._collection.publish_parent_child_link(
+                ProductParentLinkForCollectionEvent(
+                    child_product_id=child.internal_id.value,
+                    parent_product_id=previous,
+                    relationship_kind_value=None,
+                    attached=False,
+                ),
+            )

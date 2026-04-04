@@ -2,6 +2,20 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-04-04 — feature 06_integration_ports_collection_statistics
+
+### Modifications
+
+- Branche `feature/integration-ports-collection-statistics` : package `domain.integration` (provenance produit, événement lien parent-enfant, messages statistiques ouverture / carte / scan) ; ports `CollectionPort` et `StatisticsPort` redéfinis sur ces DTO ; exception `InvalidIntegrationPayloadError` ; branchement optionnel dans `RegistrationFromScanRunner`, `QualifyScannedProductUseCase`, `OpenSealedProductUseCase`, `RegisterRevealedCardFromOpeningUseCase`, `RecordOpeningCardScanUseCase`, `AttachChildProductToParentUseCase`, `DetachChildProductFromParentUseCase` ; tests miroirs et fakes ; version `0.7.0`.
+
+### Buts
+
+- Exposer des contrats stables pour synchroniser la collection et comptabiliser les faits d’ouverture sans coupler la lib à des transports ou implémentations externes.
+
+### Impact
+
+- Les applications injectent des adaptateurs derrière les protocols ; sans port, le comportement reste inchangé pour le journal métier existant.
+
 ## 2026-04-04 — feature 05_history_and_event_log
 
 ### Modifications

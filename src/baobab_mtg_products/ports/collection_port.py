@@ -1,22 +1,33 @@
-"""Port vers une brique de collection (intégration future, sans implémentation)."""
+"""Port sortant vers une brique collection (sans implémentation dans la lib)."""
 
 from typing import Protocol
 
+from baobab_mtg_products.domain.integration.product_parent_link_for_collection_event import (
+    ProductParentLinkForCollectionEvent,
+)
+from baobab_mtg_products.domain.integration.product_provenance_for_collection import (
+    ProductProvenanceForCollection,
+)
+
 
 class CollectionPort(Protocol):
-    """Contrat minimal pour notifier la collection des faits métier pertinents.
+    """Contrat pour synchroniser provenance et structure parent-enfant.
 
-    Ce :class:`typing.Protocol` évite tout couplage à une API ou un framework ;
-    les adaptateurs concrets seront fournis par les applications hôtes.
-
-    :param product_id: Identifiant interne du produit concerné.
-    :type product_id: str
+    Les adaptateurs vivent côté application ; la lib ne fournit que les DTO métier.
     """
 
-    def notify_product_registered(self, product_id: str) -> None:
-        """Signale qu'un produit a été enregistré pour la première fois.
+    def publish_product_provenance(self, provenance: ProductProvenanceForCollection) -> None:
+        """Publie ou met à jour l'instantané d'un produit scellé.
 
-        :param product_id: Identifiant du produit enregistré.
-        :type product_id: str
+        :param provenance: État courant issu du domaine.
+        :type provenance: ProductProvenanceForCollection
+        """
+        ...
+
+    def publish_parent_child_link(self, link: ProductParentLinkForCollectionEvent) -> None:
+        """Signale un rattachement actif ou sa levée pour la vue collection.
+
+        :param link: Détail du lien structurel.
+        :type link: ProductParentLinkForCollectionEvent
         """
         ...

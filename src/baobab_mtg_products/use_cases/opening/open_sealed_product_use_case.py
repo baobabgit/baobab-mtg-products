@@ -1,5 +1,13 @@
 """Cas d'usage : ouvrir une instance scellé éligible (une seule transition vers opened)."""
 
+from typing import Optional
+
+from baobab_mtg_products.domain.integration.product_provenance_for_collection import (
+    ProductProvenanceForCollection,
+)
+from baobab_mtg_products.domain.integration.sealed_product_opened_statistics_event import (
+    SealedProductOpenedStatisticsEvent,
+)
 from baobab_mtg_products.domain.opening.open_sealed_product_outcome import OpenSealedProductOutcome
 from baobab_mtg_products.domain.opening.product_opening_event import ProductOpeningEvent
 from baobab_mtg_products.domain.opening.sealed_product_opening_rules import (
@@ -10,7 +18,9 @@ from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.exceptions.registration.product_not_found_for_workflow_error import (
     ProductNotFoundForWorkflowError,
 )
+from baobab_mtg_products.ports.collection_port import CollectionPort
 from baobab_mtg_products.ports.product_repository_port import ProductRepositoryPort
+from baobab_mtg_products.ports.statistics_port import StatisticsPort
 from baobab_mtg_products.ports.product_workflow_event_recorder_port import (
     ProductWorkflowEventRecorderPort,
 )
@@ -26,6 +36,10 @@ class OpenSealedProductUseCase(UseCase[OpenSealedProductOutcome]):
     :type repository: ProductRepositoryPort
     :param events: Journal métier (événement d'ouverture).
     :type events: ProductWorkflowEventRecorderPort
+    :param collection: Synchronisation collection après ouverture, si fourni.
+    :type collection: CollectionPort | None
+    :param statistics: Agrégation statistique d'ouverture, si fourni.
+    :type statistics: StatisticsPort | None
     :raises ProductNotFoundForWorkflowError: si l'identifiant est inconnu.
     :raises ProductAlreadyOpenedError: si déjà ouvert.
     :raises ProductNotReadyForOpeningError: si le statut est inadapté.
@@ -37,10 +51,14 @@ class OpenSealedProductUseCase(UseCase[OpenSealedProductOutcome]):
         product_id: InternalProductId,
         repository: ProductRepositoryPort,
         events: ProductWorkflowEventRecorderPort,
+        collection: Optional[CollectionPort] = None,
+        statistics: Optional[StatisticsPort] = None,
     ) -> None:
         self._product_id = product_id
         self._repository = repository
         self._events = events
+        self._collection = collection
+        self._statistics = statistics
 
     def execute(self) -> OpenSealedProductOutcome:
         """Met à jour le dépôt et journalise l'ouverture."""
@@ -54,6 +72,19 @@ class OpenSealedProductUseCase(UseCase[OpenSealedProductOutcome]):
         updated = existing.derived_with(status=ProductStatus.OPENED)
         self._repository.save(updated)
         self._events.record_product_opened(updated.internal_id.value)
+        if self._collection is not None:
+            self._collection.publish_product_provenance(
+                ProductProvenanceForCollection.from_product_instance(updated),
+            )
+        if self._statistics is not None:
+            self._statistics.record_sealed_product_opened(
+                SealedProductOpenedStatisticsEvent(
+                    product_id=updated.internal_id.value,
+                    previous_status_value=previous.value,
+                    product_type_value=updated.product_type.value,
+                    set_code_value=updated.set_code.value,
+                ),
+            )
         event = ProductOpeningEvent(
             source_product_id=updated.internal_id,
             previous_status=previous,

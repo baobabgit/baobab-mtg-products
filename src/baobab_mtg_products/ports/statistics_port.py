@@ -1,30 +1,41 @@
-"""Port vers une brique de statistiques (intégration future, sans implémentation)."""
+"""Port sortant vers une brique statistiques (sans implémentation dans la lib)."""
 
-from typing import Any, Mapping, Protocol
+from typing import Protocol
+
+from baobab_mtg_products.domain.integration.card_revealed_statistics_event import (
+    CardRevealedStatisticsEvent,
+)
+from baobab_mtg_products.domain.integration.opening_card_scan_statistics_event import (
+    OpeningCardScanStatisticsEvent,
+)
+from baobab_mtg_products.domain.integration.sealed_product_opened_statistics_event import (
+    SealedProductOpenedStatisticsEvent,
+)
 
 
 class StatisticsPort(Protocol):
-    """Contrat minimal pour transmettre des événements au moteur statistique.
+    """Contrat pour enregistrer des faits d'ouverture et de traçabilité carte."""
 
-    La charge utile reste générique (:class:`typing.Mapping`) pour ne pas
-    figer le modèle d'événements tant que le domaine n'est pas implémenté.
+    def record_sealed_product_opened(self, event: SealedProductOpenedStatisticsEvent) -> None:
+        """Comptabilise l'ouverture d'un produit scellé.
 
-    :param event_type: Nom ou code d'événement métier.
-    :type event_type: str
-    :param payload: Données structurées associées à l'événement.
-    :type payload: Mapping[str, Any]
-    """
+        :param event: Données stables pour agrégation.
+        :type event: SealedProductOpenedStatisticsEvent
+        """
+        ...
 
-    def record_opening_event(
-        self,
-        event_type: str,
-        payload: Mapping[str, Any],
-    ) -> None:
-        """Enregistre un événement lié à une ouverture ou à la traçabilité.
+    def record_card_revealed_from_opening(self, event: CardRevealedStatisticsEvent) -> None:
+        """Comptabilise une carte révélée depuis un scellé ouvert.
 
-        :param event_type: Type d'événement (ex. ``'product_opened'``).
-        :type event_type: str
-        :param payload: Contenu sérialisable de l'événement.
-        :type payload: Mapping[str, Any]
+        :param event: Provenance produit + identifiant carte.
+        :type event: CardRevealedStatisticsEvent
+        """
+        ...
+
+    def record_opening_card_scan(self, event: OpeningCardScanStatisticsEvent) -> None:
+        """Comptabilise un scan de carte pendant la session d'ouverture.
+
+        :param event: Produit ouvert et charge utile de scan.
+        :type event: OpeningCardScanStatisticsEvent
         """
         ...

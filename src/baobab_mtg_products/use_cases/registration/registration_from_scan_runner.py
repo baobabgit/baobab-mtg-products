@@ -2,6 +2,9 @@
 
 from typing import Optional, cast
 
+from baobab_mtg_products.domain.integration.product_provenance_for_collection import (
+    ProductProvenanceForCollection,
+)
 from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
@@ -18,6 +21,7 @@ from baobab_mtg_products.domain.registration.registration_scan_result import (
 )
 from baobab_mtg_products.domain.registration.resolved_from_scan import ResolvedFromScan
 from baobab_mtg_products.ports.barcode_resolution_port import BarcodeResolutionPort
+from baobab_mtg_products.ports.collection_port import CollectionPort
 from baobab_mtg_products.ports.internal_product_id_factory_port import (
     InternalProductIdFactoryPort,
 )
@@ -39,6 +43,8 @@ class RegistrationFromScanRunner:
     :type product_ids: InternalProductIdFactoryPort
     :param events: Journal métier (scan, enregistrement).
     :type events: ProductWorkflowEventRecorderPort
+    :param collection: Synchronisation collection (instantanés provenance), si fourni.
+    :type collection: CollectionPort | None
     """
 
     def __init__(
@@ -47,11 +53,13 @@ class RegistrationFromScanRunner:
         resolution: BarcodeResolutionPort,
         product_ids: InternalProductIdFactoryPort,
         events: ProductWorkflowEventRecorderPort,
+        collection: Optional[CollectionPort] = None,
     ) -> None:
         self._repository = repository
         self._resolution = resolution
         self._product_ids = product_ids
         self._events = events
+        self._collection = collection
 
     def register_via_commercial(
         self,
@@ -81,6 +89,7 @@ class RegistrationFromScanRunner:
                 "commercial",
                 barcode.value,
             )
+            self._maybe_publish_provenance(existing)
             return RegistrationScanResult(
                 existing,
                 RegistrationScanOutcome.EXISTING_PRODUCT,
@@ -123,6 +132,7 @@ class RegistrationFromScanRunner:
                 "internal",
                 barcode.value,
             )
+            self._maybe_publish_provenance(existing)
             return RegistrationScanResult(
                 existing,
                 RegistrationScanOutcome.EXISTING_PRODUCT,
@@ -182,9 +192,17 @@ class RegistrationFromScanRunner:
             else (internal_barcode.value if internal_barcode is not None else "")
         )
         self._events.record_scan(new_id.value, scan_kind, raw)
+        self._maybe_publish_provenance(product)
         outcome = (
             RegistrationScanOutcome.NEW_PENDING_QUALIFICATION
             if needs_qualification
             else RegistrationScanOutcome.NEW_KNOWN_FROM_CATALOG
         )
         return RegistrationScanResult(product, outcome)
+
+    def _maybe_publish_provenance(self, instance: ProductInstance) -> None:
+        if self._collection is None:
+            return
+        self._collection.publish_product_provenance(
+            ProductProvenanceForCollection.from_product_instance(instance),
+        )

@@ -4,6 +4,19 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.7.0] - 2026-04-04
+
+### Added
+
+- Intégration collection / statistiques : package `domain.integration` (DTO `ProductProvenanceForCollection`, `ProductParentLinkForCollectionEvent`, `SealedProductOpenedStatisticsEvent`, `CardRevealedStatisticsEvent`, `OpeningCardScanStatisticsEvent`).
+- Ports `CollectionPort` (`publish_product_provenance`, `publish_parent_child_link`) et `StatisticsPort` (trois méthodes typées par DTO).
+- Exception `InvalidIntegrationPayloadError` (réexportée depuis `baobab_mtg_products.exceptions`).
+
+### Changed
+
+- `RegistrationFromScanRunner` accepte un port `CollectionPort` optionnel et publie la provenance après chaque scan abouti (produit existant ou nouvellement créé).
+- `QualifyScannedProductUseCase`, `OpenSealedProductUseCase`, `AttachChildProductToParentUseCase`, `DetachChildProductFromParentUseCase` acceptent un `CollectionPort` optionnel ; `OpenSealedProductUseCase` accepte aussi un `StatisticsPort` optionnel ; `RegisterRevealedCardFromOpeningUseCase` et `RecordOpeningCardScanUseCase` acceptent un `StatisticsPort` optionnel.
+
 ## [0.6.0] - 2026-04-04
 
 ### Added

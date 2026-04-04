@@ -60,12 +60,14 @@ from baobab_mtg_products.use_cases.registration import (
     RegistrationFromScanRunner,
 )
 
-# runner = RegistrationFromScanRunner(repo, resolution, id_factory, event_recorder)
+# runner = RegistrationFromScanRunner(repo, resolution, id_factory, event_recorder, collection=…)
 # use_case = RegisterProductByCommercialScanUseCase(CommercialBarcode("12345678"), runner)
 # result = use_case.execute()  # existing | new_known_from_catalog | new_pending_qualification
 ```
 
-Les sous-packages `domain.products`, `domain.registration`, `domain.opening`, `domain.history`, `ports` et `use_cases` portent le **modèle**, les **DTO des flux scan, ouverture et historique**, les **contrats d’intégration** et les **cas d’usage** métier.
+Les sous-packages `domain.products`, `domain.registration`, `domain.opening`, `domain.history`, `domain.integration`, `ports` et `use_cases` portent le **modèle**, les **DTO des flux scan, ouverture, historique et intégration collection/stats**, les **contrats d’intégration** et les **cas d’usage** métier.
+
+Les adaptateurs **collection** et **statistiques** implémentent `CollectionPort` et `StatisticsPort` ; les cas d’usage concernés les prennent en **injection optionnelle** (`None` par défaut) et émettent des DTO stables après succès (provenance, lien parent-enfant, faits d’ouverture / révélation / scan carte).
 
 ### Relations parent / enfant (aperçu)
 
@@ -102,7 +104,7 @@ from baobab_mtg_products import (
     OpeningCardScanPayload,
 )
 
-# open_uc = OpenSealedProductUseCase(product_id, repo, events)
+# open_uc = OpenSealedProductUseCase(product_id, repo, events, collection=…, statistics=…)
 # outcome = open_uc.execute()  # statut opened + ProductOpeningEvent
 # RegisterRevealedCardFromOpeningUseCase(pid, ExternalCardId("…"), repo, trace_repo, events).execute()
 # RecordOpeningCardScanUseCase(pid, OpeningCardScanPayload("…"), repo, events).execute()

@@ -4,6 +4,15 @@ from typing import Dict, List, Optional, Set, Tuple
 
 import pytest
 
+from baobab_mtg_products.domain.integration.card_revealed_statistics_event import (
+    CardRevealedStatisticsEvent,
+)
+from baobab_mtg_products.domain.integration.opening_card_scan_statistics_event import (
+    OpeningCardScanStatisticsEvent,
+)
+from baobab_mtg_products.domain.integration.sealed_product_opened_statistics_event import (
+    SealedProductOpenedStatisticsEvent,
+)
 from baobab_mtg_products.domain.opening.external_card_id import ExternalCardId
 from baobab_mtg_products.domain.opening.revealed_card_trace import RevealedCardTrace
 from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
@@ -134,6 +143,27 @@ class _Events:
         del product_id, scan_payload
 
 
+class _StatisticsStub:
+    """Double statistiques."""
+
+    def __init__(self) -> None:
+        self.opened: list[SealedProductOpenedStatisticsEvent] = []
+        self.revealed: list[CardRevealedStatisticsEvent] = []
+        self.scans: list[OpeningCardScanStatisticsEvent] = []
+
+    def record_sealed_product_opened(self, event: SealedProductOpenedStatisticsEvent) -> None:
+        """Non utilisé."""
+        self.opened.append(event)
+
+    def record_card_revealed_from_opening(self, event: CardRevealedStatisticsEvent) -> None:
+        """Voir :class:`StatisticsPort`."""
+        self.revealed.append(event)
+
+    def record_opening_card_scan(self, event: OpeningCardScanStatisticsEvent) -> None:
+        """Non utilisé."""
+        self.scans.append(event)
+
+
 def _opened() -> ProductInstance:
     return ProductInstance(
         InternalProductId("o1"),
@@ -174,6 +204,28 @@ class TestRegisterRevealedCardFromOpeningUseCase:
             ("o1", "c-a", 0),
             ("o1", "c-b", 1),
         ]
+
+    def test_statistics_port_records_reveal(self) -> None:
+        """Le port statistiques reçoit le même fait que le journal."""
+        repo = _Repo()
+        prod = _opened()
+        repo.save(prod)
+        traces = _TraceRepo()
+        events = _Events()
+        statistics = _StatisticsStub()
+        RegisterRevealedCardFromOpeningUseCase(
+            prod.internal_id,
+            ExternalCardId("c-stat"),
+            repo,
+            traces,
+            events,
+            statistics=statistics,
+        ).execute()
+        assert len(statistics.revealed) == 1
+        ev = statistics.revealed[0]
+        assert ev.source_product_id == "o1"
+        assert ev.external_card_id == "c-stat"
+        assert ev.sequence_in_opening == 0
 
     def test_rejects_when_not_opened(self) -> None:
         """Produit encore scellé."""

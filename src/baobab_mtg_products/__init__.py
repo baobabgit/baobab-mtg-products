@@ -46,7 +46,7 @@ from baobab_mtg_products.use_cases.parent_child import (
 try:
     __version__: str = version("baobab-mtg-products")
 except PackageNotFoundError:
-    __version__ = "0.6.0"
+    __version__ = "0.7.0"
 
 __all__ = [
     "AttachChildProductToParentUseCase",

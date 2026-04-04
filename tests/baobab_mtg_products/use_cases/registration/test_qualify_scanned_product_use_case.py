@@ -4,6 +4,12 @@ from typing import Dict, Optional
 
 import pytest
 
+from baobab_mtg_products.domain.integration.product_parent_link_for_collection_event import (
+    ProductParentLinkForCollectionEvent,
+)
+from baobab_mtg_products.domain.integration.product_provenance_for_collection import (
+    ProductProvenanceForCollection,
+)
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
@@ -97,6 +103,22 @@ class _EventsStub:
         del product_id, scan_payload
 
 
+class _CollectionStub:
+    """Double collection."""
+
+    def __init__(self) -> None:
+        self.provenance: list[ProductProvenanceForCollection] = []
+        self.links: list[ProductParentLinkForCollectionEvent] = []
+
+    def publish_product_provenance(self, provenance: ProductProvenanceForCollection) -> None:
+        """Voir :class:`CollectionPort`."""
+        self.provenance.append(provenance)
+
+    def publish_parent_child_link(self, link: ProductParentLinkForCollectionEvent) -> None:
+        """Non utilisé."""
+        del link
+
+
 class TestQualifyScannedProductUseCase:
     """Qualification après scan incomplet."""
 
@@ -124,6 +146,31 @@ class TestQualifyScannedProductUseCase:
         assert updated.product_type is ProductType.PLAY_BOOSTER
         assert repo.by_id[pid.value].set_code.value == "MH3"
         assert events.quals == ["q1"]
+
+    def test_collection_port_receives_provenance_when_injected(self) -> None:
+        """Après qualification, la provenance reflète le produit qualifié."""
+        pid = InternalProductId("q2")
+        pending = ProductInstance(
+            pid,
+            ProductType.OTHER_SEALED,
+            RegistrationDefaults.placeholder_set_code(),
+            ProductStatus.REGISTERED,
+        )
+        repo = _RepoStub()
+        repo.by_id[pid.value] = pending
+        collection = _CollectionStub()
+        use_case = QualifyScannedProductUseCase(
+            pid,
+            ProductType.PLAY_BOOSTER,
+            MtgSetCode("MH3"),
+            repo,
+            _EventsStub(),
+            collection=collection,
+        )
+        use_case.execute()
+        assert len(collection.provenance) == 1
+        assert collection.provenance[0].internal_product_id == "q2"
+        assert collection.provenance[0].product_status_value == "qualified"
 
     def test_missing_product_raises(self) -> None:
         """Identifiant inconnu : erreur explicite."""
