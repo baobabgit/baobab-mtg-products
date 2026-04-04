@@ -47,6 +47,22 @@ class ProductRepositoryPort(Protocol):
         """
         ...
 
+    def list_direct_children_of_parent(
+        self,
+        parent_id: InternalProductId,
+    ) -> tuple[ProductInstance, ...]:
+        """Retourne les instances dont ``parent_id`` pointe vers ce parent.
+
+        L'ordre des éléments doit être stable pour des jeux de tests reproductibles
+        (ex. tri par identifiant interne).
+
+        :param parent_id: Identifiant du parent structurel.
+        :type parent_id: InternalProductId
+        :return: Enfants directs uniquement (pas les descendants).
+        :rtype: tuple[ProductInstance, ...]
+        """
+        ...
+
     def save(self, product: ProductInstance) -> None:
         """Enregistre ou remplace une instance.
 

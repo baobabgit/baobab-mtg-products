@@ -25,6 +25,10 @@ from baobab_mtg_products.exceptions.opening import (
     ProductNotOpenedForCardTraceError,
     ProductNotReadyForOpeningError,
 )
+from baobab_mtg_products.exceptions.query import (
+    MissingReferencedParentProductError,
+    ProductNotFoundForQueryError,
+)
 from baobab_mtg_products.exceptions.registration import (
     AmbiguousBarcodeResolutionError,
     InvalidQualificationStateError,
@@ -61,9 +65,11 @@ __all__ = [
     "InvalidQualificationStateError",
     "InvalidSerialNumberError",
     "InvalidSetCodeError",
+    "MissingReferencedParentProductError",
     "ProductAlreadyHasParentError",
     "ProductAlreadyOpenedError",
     "ProductHistoryCoherenceError",
+    "ProductNotFoundForQueryError",
     "ProductNotFoundForWorkflowError",
     "ProductNotOpenableError",
     "ProductNotOpenedForCardTraceError",

@@ -64,6 +64,19 @@ class _Repo:
         """Voir :class:`ProductRepositoryPort`."""
         self.by_id[product.internal_id.value] = product
 
+    def list_direct_children_of_parent(
+        self,
+        parent_id: InternalProductId,
+    ) -> tuple[ProductInstance, ...]:
+        """Voir :class:`ProductRepositoryPort`."""
+        kids = [
+            p
+            for p in self.by_id.values()
+            if p.parent_id is not None and p.parent_id.value == parent_id.value
+        ]
+        kids.sort(key=lambda p: p.internal_id.value)
+        return tuple(kids)
+
 
 class _TraceRepo:
     """Traces en mémoire."""
