@@ -4,6 +4,21 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [1.0.1] - 2026-04-05
+
+### Summary
+
+Release de **correction** (packaging et readiness PyPI) : incrément SemVer **patch** après publication du tag GitHub **`v1.0.0`**, afin de livrer un numéro d’artefact et des métadonnées **cohérents** avec l’état actuel du dépôt **sans recycler** ni déplacer ce tag.
+
+### Fixed
+
+- Alignement des sources de vérité de version sur **1.0.1** : `pyproject.toml`, repli dans `baobab_mtg_products.__init__`, test `tests/baobab_mtg_products/test_init.py`.
+
+### Notes
+
+- Le classifier PyPI **`Development Status :: 5 - Production/Stable`** est conservé (librairie stable).
+- L’extra **`[dev]`** inclut **`build`** et **`twine` (≥ 6)** ; la documentation et la CI s’appuient sur `pip install -e ".[dev]"` pour construire les artefacts et exécuter `twine check`.
+
 ## [1.0.0] - 2026-04-04
 
 ### Summary

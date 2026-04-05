@@ -2,6 +2,25 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-04-05 — fix release_go_1_0_1
+
+### Contexte
+
+- Un tag / release GitHub **`v1.0.0`** est déjà public : toute correction de **packaging** ou de **readiness PyPI** doit éviter une réutilisation ambiguë de ce tag ou un historique réécrit.
+- La mission visait aussi à garantir la cohérence **documentation ↔ extra `[dev]`** et **classifier PyPI stable** ; sur `main`, **`build`** et **`twine` (≥ 6)** étaient déjà présents dans `[dev]`, et le classifier était déjà **Production/Stable** — pas de régression à corriger de ce côté.
+
+### Modifications
+
+- Branche `fix/release-go-1-0-1` : bump **1.0.0 → 1.0.1** dans `pyproject.toml`, repli `__version__` dans `baobab_mtg_products.__init__`, assertion du test `test_init.py` ; entrée **`CHANGELOG.md` [1.0.1]** ; `docs/RELEASE.md` (stratégie tags `v1.0.0` vs release patch suivante, commandes avec `pip install --upgrade pip`) ; `README.md` (rappel SemVer après `v1.0.0`).
+
+### Impact readiness PyPI
+
+- Le prochain artefact publié peut porter le numéro **1.0.1**, traçable et distinct du tag **`v1.0.0`**, ce qui clarifie la chaîne release pour les consommateurs PyPI et les clones Git.
+
+### Pourquoi 1.0.1 plutôt que « recycler » v1.0.0
+
+- **SemVer** et les bonnes pratiques Git interdisent de déplacer un tag déjà poussé ; un **patch** documente explicitement les corrections release sans nier la release **`v1.0.0`**.
+
 ## 2026-04-04 — fix release_go_pypi_ci
 
 ### Modifications
