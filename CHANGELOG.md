@@ -14,6 +14,10 @@ Première version **stable** : périmètre fonctionnel couvert par les features 
 
 - `pyproject.toml` : le classifier `Development Status` était resté en **Pre-Alpha** alors que la version **1.0.0** est annoncée stable ; alignement sur **Production/Stable**.
 
+### Added
+
+- Dépendances optionnelles de développement `build` et `twine` pour reproduire localement la construction d’artefacts et le contrôle `twine check`.
+
 ### Changed
 
 - `ParentChildRelationshipRules.validate` : branchement `if` / `elif` / `else` avec assertion d’exhaustivité sur le kind (couverture à 100 %).
