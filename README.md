@@ -28,6 +28,16 @@ Librairie Python **métier** et **typée** (`py.typed`) pour la gestion des prod
 
 ## Installation
 
+### Depuis PyPI (après publication)
+
+Lorsque le paquet est disponible sur l’index PyPI public :
+
+```bash
+python -m pip install baobab-mtg-products
+```
+
+Le nom du projet sur PyPI est `baobab-mtg-products` ; le module Python importable est `baobab_mtg_products`.
+
 ### Utilisateur (runtime)
 
 Depuis une roue ou un sdist produit localement ou par votre pipeline :
@@ -50,11 +60,12 @@ Aucune dépendance runtime tierce n’est requise (`dependencies = []` dans `pyp
 python -m pip install -e ".[dev]"
 ```
 
-Construction des artefacts :
+Construction et contrôle des artefacts (avec l’extra `[dev]`, `build` et `twine` sont déjà installés) :
 
 ```bash
-python -m pip install build
+rm -rf dist
 python -m build
+python -m twine check dist/*
 ```
 
 Les roues et le sdist sont générés sous `dist/`.
@@ -189,6 +200,8 @@ from baobab_mtg_products.domain.products import InternalProductId
 
 ## Qualité, couverture et release
 
+Une chaîne équivalente aux commandes ci-dessous est exécutée sur **push** et **pull_request** via **GitHub Actions** (`.github/workflows/ci.yml`), pour les versions de Python annoncées dans `pyproject.toml`.
+
 ```bash
 python -m pytest
 python -m coverage run -m pytest
@@ -201,7 +214,7 @@ python -m flake8 src tests
 python -m bandit -r src
 ```
 
-Les données de couverture sont configurées dans `pyproject.toml` (seuil minimal, chemins sous `docs/tests/coverage/`). La checklist de publication est décrite dans **`docs/RELEASE.md`**.
+Les données de couverture sont configurées dans `pyproject.toml` (seuil minimal, chemins sous `docs/tests/coverage/`). La procédure de publication (build, `twine check`, tag) est détaillée dans **`docs/RELEASE.md`**.
 
 ## Documentation
 
