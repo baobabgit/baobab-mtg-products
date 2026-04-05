@@ -200,6 +200,8 @@ from baobab_mtg_products.domain.products import InternalProductId
 
 ## Qualité, couverture et release
 
+Après le tag public **`v1.0.0`**, les correctifs de chaîne release (packaging, métadonnées, extras `[dev]`) sont portés en **1.0.1** et suivants selon **SemVer** ; consulter `CHANGELOG.md` et `docs/RELEASE.md` avant publication.
+
 Une chaîne équivalente aux commandes ci-dessous est exécutée sur **push** et **pull_request** via **GitHub Actions** (`.github/workflows/ci.yml`), pour les versions de Python annoncées dans `pyproject.toml`.
 
 ```bash
