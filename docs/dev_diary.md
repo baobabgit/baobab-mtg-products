@@ -2,6 +2,20 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-04-04 — fix release_go_pypi_ci
+
+### Modifications
+
+- Branche `fix/release-go-1-0-0` : classifier PyPI `Development Status` aligné sur **Production/Stable** (cohérence avec la **1.0.0**) ; extras `[dev]` enrichis avec **`build`** et **`twine`** ; workflow **`.github/workflows/ci.yml`** (push / PR, matrix Python 3.10–3.13) reprenant tests, couverture avec `fail_under`, black, pylint, mypy, flake8, bandit, `python -m build`, `twine check dist/*` ; `ParentChildRelationshipRules.validate` : retrait de l’`assert` (B101 bandit) au profit d’un `else` métier explicite + test ; `docs/RELEASE.md`, `README.md`, `docs/000_dev_constraints.md`, `CHANGELOG.md` mis à jour en conséquence.
+
+### Buts
+
+- Rendre le **GO release PyPI** **traçable** (CI publique), **reproductible** (outils de build dans `[dev]`) et **honnête** dans les métadonnées (stable annoncée = classifier stable).
+
+### Impact
+
+- Toute contribution mergée sur `main` est vérifiée automatiquement sur plusieurs versions Python ; les mainteneurs peuvent rejouer la même séquence en local ou s’y référer pour le tag et la publication sans écart avec la CI.
+
 ## 2026-04-04 — feature 08_release_readiness
 
 ### Modifications
