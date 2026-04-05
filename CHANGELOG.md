@@ -10,6 +10,10 @@ Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/
 
 Première version **stable** : périmètre fonctionnel couvert par les features 00–07, documentation consolidée (`README`, `docs/RELEASE.md`), métadonnées de packaging (PyPI classifiers `Production/Stable`, URLs dépôt), seuil de couverture relevé à **95 %**, et clarification de la stabilité de l’API exportée au niveau racine.
 
+### Fixed
+
+- `pyproject.toml` : le classifier `Development Status` était resté en **Pre-Alpha** alors que la version **1.0.0** est annoncée stable ; alignement sur **Production/Stable**.
+
 ### Changed
 
 - `ParentChildRelationshipRules.validate` : branchement `if` / `elif` / `else` avec assertion d’exhaustivité sur le kind (couverture à 100 %).
