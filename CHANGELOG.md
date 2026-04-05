@@ -17,6 +17,7 @@ Première version **stable** : périmètre fonctionnel couvert par les features 
 ### Added
 
 - Dépendances optionnelles de développement `build` et `twine` pour reproduire localement la construction d’artefacts et le contrôle `twine check`.
+- Workflow GitHub Actions `.github/workflows/ci.yml` (événements `push` et `pull_request`) : tests, couverture avec seuil configuré, `black`, `pylint`, `mypy`, `flake8`, `bandit`, `python -m build`, `python -m twine check dist/*`.
 
 ### Changed
 
