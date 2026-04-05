@@ -1,6 +1,6 @@
 # Contraintes et Bonnes Pratiques de Développement
 
-Ce document définit les contraintes et bonnes pratiques à respecter pour le développement du projet `baobab-nom_du_projet`.
+Ce document définit les contraintes et bonnes pratiques à respecter pour le développement du projet `baobab-mtg-products`.
 
 ## Table des matières
 
@@ -24,7 +24,7 @@ Ce document définit les contraintes et bonnes pratiques à respecter pour le d�
 
 ### Arborescence
 
-- **Code source** : Le code source du projet doit être placé dans `src/nom_du_projet`
+- **Code source** : Le code source du projet doit être placé dans `src/baobab_mtg_products`
 - **Tests** : Les tests unitaires doivent être placés dans le dossier `tests/`
 - **Documentation** : La documentation de développement doit être dans le dossier `docs/`
 
@@ -32,8 +32,8 @@ Ce document définit les contraintes et bonnes pratiques à respecter pour le d�
 
 - **Une classe par fichier** : Chaque classe doit être définie dans son propre fichier
 - **Arborescence logique** : Les classes doivent être organisées par catégorie et sous-catégorie
-  - Exemple : `src/baobab_cli/category/subcategory/class_name.py`
-  - Les tests doivent refléter cette structure : `tests/baobab_cli/category/subcategory/test_class_name.py`
+  - Exemple : `src/baobab_mtg_products/domain/products/product_instance.py`
+  - Les tests doivent refléter cette structure : `tests/baobab_mtg_products/domain/products/test_product_instance.py`
 
 ---
 
@@ -58,16 +58,17 @@ Ce document définit les contraintes et bonnes pratiques à respecter pour le d�
 ### Exemple de structure
 
 ```
-src/baobab_cli/
+src/baobab_mtg_products/
 ├── exceptions/
 │   ├── __init__.py
-│   └── base_exception.py
-├── core/
+│   └── baobab_mtg_products_exception.py
+├── domain/
 │   ├── __init__.py
-│   └── base_handler.py
-└── utils/
+│   └── products/
+│       └── ...
+└── use_cases/
     ├── __init__.py
-    └── file_parser.py
+    └── ...
 ```
 
 ---
@@ -83,14 +84,14 @@ src/baobab_cli/
 ### Exemple
 
 ```python
-# src/baobab_cli/exceptions/base_exception.py
-class BaobabException(Exception):
-    """Classe de base pour toutes les exceptions du projet."""
+# src/baobab_mtg_products/exceptions/baobab_mtg_products_exception.py
+class BaobabMtgProductsException(Exception):
+    """Classe de base pour toutes les exceptions métier du projet."""
     pass
 
-# src/baobab_cli/exceptions/validation_exception.py
-class ValidationException(BaobabException):
-    """Exception levée lors d'erreurs de validation."""
+# src/baobab_mtg_products/exceptions/product/invalid_commercial_barcode_error.py
+class InvalidCommercialBarcodeError(BaobabMtgProductsException):
+    """Exception levée lorsque le code-barres commercial est invalide."""
     pass
 ```
 
@@ -124,21 +125,29 @@ class ValidationException(BaobabException):
 ### Exemple
 
 ```python
-# tests/baobab_cli/core/test_base_handler.py
-from abc import ABC
-from baobab_cli.core.base_handler import BaseHandler
+# tests/baobab_mtg_products/domain/example/test_abstract_processor.py
+from abc import ABC, abstractmethod
 
-class ConcreteHandler(BaseHandler):  # Pour tester une classe abstraite
-    def process(self):
+
+class AbstractProcessor(ABC):
+    """Exemple de classe abstraite (schéma illustratif)."""
+
+    @abstractmethod
+    def process(self) -> str:
+        """Traitement métier."""
+
+
+class ConcreteProcessor(AbstractProcessor):
+    def process(self) -> str:
         return "processed"
 
-class TestBaseHandler:
-    """Classe de tests pour BaseHandler."""
-    
-    def test_handler(self):
-        """Test du handler."""
-        handler = ConcreteHandler()
-        assert handler.process() == "processed"
+
+class TestAbstractProcessor:
+    """Classe de tests pour une hiérarchie abstraite."""
+
+    def test_concrete_implementation(self) -> None:
+        processor = ConcreteProcessor()
+        assert processor.process() == "processed"
 ```
 
 ---

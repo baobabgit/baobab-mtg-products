@@ -10,9 +10,19 @@ Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/
 
 Première version **stable** : périmètre fonctionnel couvert par les features 00–07, documentation consolidée (`README`, `docs/RELEASE.md`), métadonnées de packaging (PyPI classifiers `Production/Stable`, URLs dépôt), seuil de couverture relevé à **95 %**, et clarification de la stabilité de l’API exportée au niveau racine.
 
+### Fixed
+
+- `pyproject.toml` : le classifier `Development Status` était resté en **Pre-Alpha** alors que la version **1.0.0** est annoncée stable ; alignement sur **Production/Stable**.
+- `ParentChildRelationshipRules.validate` : suppression de l’`assert` d’exhaustivité (signalé par **bandit** B101) au profit d’une branche `else` explicite et d’un test de garde-fou pour les kinds non reconnus.
+
+### Added
+
+- Dépendances optionnelles de développement `build` et `twine` (**≥ 6**) pour reproduire localement la construction d’artefacts et le contrôle `twine check` (métadonnées **Metadata-Version 2.4** produites par le build actuel).
+- Workflow GitHub Actions `.github/workflows/ci.yml` (événements `push` et `pull_request`) : tests, couverture avec seuil configuré, `black`, `pylint`, `mypy`, `flake8`, `bandit`, `python -m build`, `python -m twine check dist/*`.
+
 ### Changed
 
-- `ParentChildRelationshipRules.validate` : branchement `if` / `elif` / `else` avec assertion d’exhaustivité sur le kind (couverture à 100 %).
+- `ParentChildRelationshipRules.validate` : branchement `if` / `elif` / `elif` / `else` sur le kind, sans `assert` runtime (couverture à 100 % ; compatible **bandit**).
 - `pyproject.toml` : `fail_under` couverture à **95 %** ; liens `Repository` / `Documentation` / `Issues` alignés sur le dépôt effectif.
 - Documentation : seuil de couverture porté à 95 % dans `docs/001_specifications.md`, `docs/000_dev_constraints.md` et `docs/tests/coverage/README.md`.
 
