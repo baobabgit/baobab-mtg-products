@@ -45,9 +45,13 @@ class ParentChildRelationshipRules:
             cls._validate_display_contains_booster(parent, child)
         elif kind == ProductRelationshipKind.BUNDLE_CONTAINS_SUBPRODUCT:
             cls._validate_bundle_contains_subproduct(parent, child)
+        elif kind == ProductRelationshipKind.GENERIC_STRUCTURAL_ATTACHMENT:
+            # Pas de validation de types pour ce kind.
+            return
         else:
-            # Seul GENERIC_STRUCTURAL_ATTACHMENT reste : pas de validation de types.
-            assert kind is ProductRelationshipKind.GENERIC_STRUCTURAL_ATTACHMENT
+            raise IncompatibleParentChildTypesError(
+                f"Kind de relation parent-enfant non pris en charge : {kind!r}.",
+            )
 
     @staticmethod
     def _validate_display_contains_booster(

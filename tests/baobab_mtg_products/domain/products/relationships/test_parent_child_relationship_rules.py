@@ -1,5 +1,7 @@
 """Tests pour :class:`ParentChildRelationshipRules`."""
 
+from typing import cast
+
 import pytest
 
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
@@ -89,3 +91,13 @@ class TestParentChildRelationshipRules:
             _inst("z", ProductType.COMMANDER_DECK),
             ProductRelationshipKind.GENERIC_STRUCTURAL_ATTACHMENT,
         )
+
+    def test_unknown_kind_rejected(self) -> None:
+        """Valeur ne correspondant à aucun membre connu de l'enum (garde-fou)."""
+        bogus = cast(ProductRelationshipKind, object())
+        with pytest.raises(IncompatibleParentChildTypesError):
+            ParentChildRelationshipRules.validate(
+                _inst("a", ProductType.DISPLAY),
+                _inst("b", ProductType.PLAY_BOOSTER),
+                bogus,
+            )
