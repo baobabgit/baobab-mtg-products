@@ -216,7 +216,7 @@ Toute fonctionnalité doit être intégrée via Pull Request après validation d
 
 - le périmètre métier défini est couvert ;
 - les cas d’usage minimum sont implémentés ;
-- l’architecture reste indépendante des couches hors périmètre ;
+- l’architecture reste indépendante des couches hors périmètre ; 
 - les exceptions sont hiérarchisées et spécifiques ;
 - les tests atteignent au moins 95 % de couverture ;
 - black, pylint, mypy, flake8 et bandit passent sans erreur ;
