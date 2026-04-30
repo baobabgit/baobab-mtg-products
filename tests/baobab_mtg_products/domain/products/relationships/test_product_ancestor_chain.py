@@ -2,11 +2,11 @@
 
 from typing import Dict, Optional
 
-from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.domain.products.relationships.product_ancestor_chain import (
@@ -23,13 +23,6 @@ class _Repo:
     def find_by_id(self, product_id: InternalProductId) -> Optional[ProductInstance]:
         """Voir :class:`ProductRepositoryPort`."""
         return self.by_id.get(product_id.value)
-
-    def find_by_commercial_barcode(
-        self,
-        barcode: CommercialBarcode,
-    ) -> Optional[ProductInstance]:
-        """Non utilisé."""
-        del barcode
 
     def find_by_internal_barcode(
         self,
@@ -63,10 +56,11 @@ def _node(
     parent: Optional[str] = None,
 ) -> ProductInstance:
     return ProductInstance(
-        InternalProductId(pid),
-        ptype,
-        MtgSetCode("TS"),
-        ProductStatus.SEALED,
+        internal_id=InternalProductId(pid),
+        reference_id=ProductReferenceId(f"ref-{pid}"),
+        product_type=ptype,
+        set_code=MtgSetCode("TS"),
+        status=ProductStatus.SEALED,
         parent_id=InternalProductId(parent) if parent else None,
     )
 

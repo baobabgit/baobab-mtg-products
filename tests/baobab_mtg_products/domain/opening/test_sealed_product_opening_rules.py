@@ -8,6 +8,7 @@ from baobab_mtg_products.domain.opening.sealed_product_opening_rules import (
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.exceptions.opening.product_already_opened_error import (
@@ -27,10 +28,11 @@ def _inst(
     status: ProductStatus,
 ) -> ProductInstance:
     return ProductInstance(
-        InternalProductId(pid),
-        ptype,
-        MtgSetCode("TS"),
-        status,
+        internal_id=InternalProductId(pid),
+        reference_id=ProductReferenceId(f"ref-{pid}"),
+        product_type=ptype,
+        set_code=MtgSetCode("TS"),
+        status=status,
     )
 
 

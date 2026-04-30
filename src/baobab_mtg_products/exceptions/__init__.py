@@ -8,6 +8,8 @@ from baobab_mtg_products.exceptions.product import (
     InvalidInternalBarcodeError,
     InvalidProductIdentifierError,
     InvalidProductInstanceError,
+    InvalidProductReferenceError,
+    InvalidProductReferenceIdError,
     InvalidSerialNumberError,
     InvalidSetCodeError,
 )
@@ -28,11 +30,13 @@ from baobab_mtg_products.exceptions.opening import (
 from baobab_mtg_products.exceptions.query import (
     MissingReferencedParentProductError,
     ProductNotFoundForQueryError,
+    ProductReferenceNotFoundForQueryError,
 )
 from baobab_mtg_products.exceptions.registration import (
     AmbiguousBarcodeResolutionError,
     InvalidQualificationStateError,
     ProductNotFoundForWorkflowError,
+    ProductReferenceNotFoundForWorkflowError,
 )
 from baobab_mtg_products.exceptions.relationship import (
     ChildProductNotAttachedError,
@@ -62,6 +66,8 @@ __all__ = [
     "InvalidProductIdentifierError",
     "InvalidRevealedCardSequenceError",
     "InvalidProductInstanceError",
+    "InvalidProductReferenceError",
+    "InvalidProductReferenceIdError",
     "InvalidQualificationStateError",
     "InvalidSerialNumberError",
     "InvalidSetCodeError",
@@ -71,6 +77,8 @@ __all__ = [
     "ProductHistoryCoherenceError",
     "ProductNotFoundForQueryError",
     "ProductNotFoundForWorkflowError",
+    "ProductReferenceNotFoundForQueryError",
+    "ProductReferenceNotFoundForWorkflowError",
     "ProductNotOpenableError",
     "ProductNotOpenedForCardTraceError",
     "ProductNotReadyForOpeningError",

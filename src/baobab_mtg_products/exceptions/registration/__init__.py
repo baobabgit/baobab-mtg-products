@@ -9,9 +9,13 @@ from baobab_mtg_products.exceptions.registration.invalid_qualification_state_err
 from baobab_mtg_products.exceptions.registration.product_not_found_for_workflow_error import (
     ProductNotFoundForWorkflowError,
 )
+from baobab_mtg_products.exceptions.registration.missing_product_ref_workflow_error import (
+    ProductReferenceNotFoundForWorkflowError,
+)
 
 __all__ = [
     "AmbiguousBarcodeResolutionError",
     "InvalidQualificationStateError",
     "ProductNotFoundForWorkflowError",
+    "ProductReferenceNotFoundForWorkflowError",
 ]

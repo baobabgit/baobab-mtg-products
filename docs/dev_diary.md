@@ -2,6 +2,22 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-05-01 12:00:00 — feature 09_product_reference_instance_split
+
+### Modifications
+
+- Ajout de **`ProductReference`**, **`ProductReferenceId`**, ports de persistance et de fabrique d’ids ; adaptation de **`ProductInstance`** (`reference_id`, suppression du code-barres commercial sur l’instance, clarification type/set dénormalisés).
+- Refonte de **`RegistrationFromScanRunner`** (réutilisation de référence + nouvelle instance par scan commercial dupliqué), de **`QualifyScannedProductUseCase`** (mise à jour référence + instance), des services **`GetSealedProductSnapshotService`** et **`GetProductStructuralViewService`** (jointure avec références).
+- Extension de **`ResolvedFromScan`**, **`ProductProvenanceForCollection`**, exports racine, **`CHANGELOG`** **2.0.0**, **`README`**, tests unitaires et de workflow.
+
+### Buts
+
+- Séparer explicitement catalogue commercial et exemplaire physique, permettre plusieurs instances pour un même code-barres sans ambiguïté sur l’identité unique (**`internal_id`**).
+
+### Impact
+
+- **Breaking** SemVer **2.0.0** : signatures des constructeurs de services / runner, **`ProductInstance`**, port dépôt instance ; consommateurs doivent brancher un **`ProductReferenceRepositoryPort`** et migrer les données.
+
 ## 2026-04-05 — fix release_go_1_0_1
 
 ### Contexte

@@ -12,6 +12,12 @@ from baobab_mtg_products.exceptions.product.invalid_product_identifier_error imp
 from baobab_mtg_products.exceptions.product.invalid_product_instance_error import (
     InvalidProductInstanceError,
 )
+from baobab_mtg_products.exceptions.product.invalid_product_reference_error import (
+    InvalidProductReferenceError,
+)
+from baobab_mtg_products.exceptions.product.invalid_product_reference_id_error import (
+    InvalidProductReferenceIdError,
+)
 from baobab_mtg_products.exceptions.product.invalid_serial_number_error import (
     InvalidSerialNumberError,
 )
@@ -24,6 +30,8 @@ __all__ = [
     "InvalidInternalBarcodeError",
     "InvalidProductIdentifierError",
     "InvalidProductInstanceError",
+    "InvalidProductReferenceError",
+    "InvalidProductReferenceIdError",
     "InvalidSerialNumberError",
     "InvalidSetCodeError",
 ]

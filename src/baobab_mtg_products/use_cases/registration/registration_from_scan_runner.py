@@ -9,6 +9,7 @@ from baobab_mtg_products.domain.products.commercial_barcode import CommercialBar
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference import ProductReference
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.domain.products.serial_number import SerialNumber
@@ -25,6 +26,12 @@ from baobab_mtg_products.ports.collection_port import CollectionPort
 from baobab_mtg_products.ports.internal_product_id_factory_port import (
     InternalProductIdFactoryPort,
 )
+from baobab_mtg_products.ports.product_reference_id_factory_port import (
+    ProductReferenceIdFactoryPort,
+)
+from baobab_mtg_products.ports.product_reference_repository_port import (
+    ProductReferenceRepositoryPort,
+)
 from baobab_mtg_products.ports.product_repository_port import ProductRepositoryPort
 from baobab_mtg_products.ports.product_workflow_event_recorder_port import (
     ProductWorkflowEventRecorderPort,
@@ -35,12 +42,16 @@ from baobab_mtg_products.ports.product_workflow_event_recorder_port import (
 class RegistrationFromScanRunner:
     """Applique le scénario scan → résolution → persistance → événements.
 
-    :param repository: Dépôt des instances produit.
+    :param repository: Dépôt des instances produit physiques.
     :type repository: ProductRepositoryPort
+    :param reference_repository: Dépôt des références catalogue partagées.
+    :type reference_repository: ProductReferenceRepositoryPort
     :param resolution: Résolution catalogue pour les codes scannés.
     :type resolution: BarcodeResolutionPort
     :param product_ids: Fabrique d'identifiants pour les nouvelles instances.
     :type product_ids: InternalProductIdFactoryPort
+    :param reference_ids: Fabrique d'identifiants pour les nouvelles références.
+    :type reference_ids: ProductReferenceIdFactoryPort
     :param events: Journal métier (scan, enregistrement).
     :type events: ProductWorkflowEventRecorderPort
     :param collection: Synchronisation collection (instantanés provenance), si fourni.
@@ -50,14 +61,18 @@ class RegistrationFromScanRunner:
     def __init__(
         self,
         repository: ProductRepositoryPort,
+        reference_repository: ProductReferenceRepositoryPort,
         resolution: BarcodeResolutionPort,
         product_ids: InternalProductIdFactoryPort,
+        reference_ids: ProductReferenceIdFactoryPort,
         events: ProductWorkflowEventRecorderPort,
         collection: Optional[CollectionPort] = None,
     ) -> None:
         self._repository = repository
+        self._reference_repository = reference_repository
         self._resolution = resolution
         self._product_ids = product_ids
+        self._reference_ids = reference_ids
         self._events = events
         self._collection = collection
 
@@ -69,7 +84,12 @@ class RegistrationFromScanRunner:
         set_code_override: Optional[MtgSetCode] = None,
         product_type_override: Optional[ProductType] = None,
     ) -> RegistrationScanResult:
-        """Enregistre ou retrouve un produit à partir d'un scan commercial.
+        """Enregistre un nouvel exemplaire ou retrouve une instance par scan interne équivalent.
+
+        Un même code-barres commercial peut désigner une :class:`ProductReference`
+        déjà persistée : une nouvelle :class:`ProductInstance` est alors créée sans
+        fusion ni blocage. Les overrides type/set ne s'appliquent pas dans ce cas :
+        la vérité descriptive reste celle de la référence existante.
 
         :param barcode: Code-barres commercial scanné.
         :type barcode: CommercialBarcode
@@ -82,18 +102,27 @@ class RegistrationFromScanRunner:
         :return: Instance persistée et issue métier du flux.
         :rtype: RegistrationScanResult
         """
-        existing = self._repository.find_by_commercial_barcode(barcode)
-        if existing is not None:
+        shared_ref = self._reference_repository.find_by_commercial_barcode(barcode)
+        if shared_ref is not None:
+            product = self._new_instance_for_existing_reference(
+                shared_ref,
+                serial_number=serial_number,
+            )
+            self._repository.save(product)
+            self._events.record_registration(product.internal_id.value)
             self._events.record_scan(
-                existing.internal_id.value,
+                product.internal_id.value,
                 "commercial",
                 barcode.value,
             )
-            self._maybe_publish_provenance(existing)
-            return RegistrationScanResult(
-                existing,
-                RegistrationScanOutcome.EXISTING_PRODUCT,
+            self._maybe_publish_provenance(product)
+            outcome = (
+                RegistrationScanOutcome.NEW_PENDING_QUALIFICATION
+                if shared_ref.requires_qualification
+                else RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE
             )
+            return RegistrationScanResult(product, outcome)
+
         resolved = self._resolution.resolve_commercial(barcode)
         return self._materialize_new_scan(
             resolved=resolved,
@@ -147,6 +176,45 @@ class RegistrationFromScanRunner:
             product_type_override=product_type_override,
         )
 
+    def _reference_display_name(
+        self,
+        resolved: ResolvedFromScan,
+        *,
+        commercial_barcode: Optional[CommercialBarcode],
+        internal_barcode: Optional[InternalBarcode],
+    ) -> str:
+        if resolved.display_name is not None:
+            stripped = resolved.display_name.strip()
+            if stripped:
+                return stripped
+        if commercial_barcode is not None:
+            return f"Produit commercial {commercial_barcode.value}"
+        if internal_barcode is not None:
+            return f"Produit interne {internal_barcode.value}"
+        return "Référence produit"
+
+    def _new_instance_for_existing_reference(
+        self,
+        reference: ProductReference,
+        *,
+        serial_number: Optional[SerialNumber],
+    ) -> ProductInstance:
+        new_id = self._product_ids.new_product_id()
+        status = (
+            ProductStatus.REGISTERED
+            if reference.requires_qualification
+            else ProductStatus.QUALIFIED
+        )
+        return ProductInstance(
+            internal_id=new_id,
+            reference_id=reference.reference_id,
+            product_type=reference.product_type,
+            set_code=reference.set_code,
+            status=status,
+            serial_number=serial_number,
+            internal_barcode=None,
+        )
+
     def _materialize_new_scan(  # pylint: disable=too-many-locals
         self,
         *,
@@ -173,14 +241,31 @@ class RegistrationFromScanRunner:
         needs_qualification = used_default_type or used_default_set
         status = ProductStatus.REGISTERED if needs_qualification else ProductStatus.QUALIFIED
 
+        ref_name = self._reference_display_name(
+            resolved,
+            commercial_barcode=commercial_barcode,
+            internal_barcode=internal_barcode,
+        )
+        ref_id = self._reference_ids.new_reference_id()
+        reference = ProductReference(
+            reference_id=ref_id,
+            name=ref_name,
+            product_type=cast(ProductType, final_type),
+            set_code=cast(MtgSetCode, final_set),
+            requires_qualification=needs_qualification,
+            commercial_barcode=commercial_barcode,
+            image_uri=resolved.image_uri,
+        )
+        self._reference_repository.save(reference)
+
         new_id = self._product_ids.new_product_id()
         product = ProductInstance(
             internal_id=new_id,
+            reference_id=ref_id,
             product_type=cast(ProductType, final_type),
             set_code=cast(MtgSetCode, final_set),
             status=status,
             serial_number=serial_number,
-            commercial_barcode=commercial_barcode,
             internal_barcode=internal_barcode,
         )
         self._repository.save(product)

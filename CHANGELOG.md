@@ -4,6 +4,32 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.0.0] - 2026-05-01
+
+### Summary
+
+Version **majeure** : introduction du modèle **`ProductReference`** (catalogue partagé) distinct des **`ProductInstance`** (exemplaires physiques), avec adaptation des workflows d’enregistrement, de qualification et des services de consultation.
+
+### Added
+
+- **`ProductReference`** et **`ProductReferenceId`** : nom, `image_uri`, type, set, code-barres commercial optionnel, indicateur `requires_qualification`.
+- Ports **`ProductReferenceRepositoryPort`** et **`ProductReferenceIdFactoryPort`**.
+- **`SealedProductSnapshot`** et issue métier **`RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE`**.
+- Exceptions **`InvalidProductReferenceIdError`**, **`InvalidProductReferenceError`**, **`ProductReferenceNotFoundForQueryError`**, **`ProductReferenceNotFoundForWorkflowError`** (module `missing_product_ref_workflow_error`).
+- Champs optionnels **`display_name`** et **`image_uri`** sur **`ResolvedFromScan`** pour alimenter la référence catalogue.
+- Champ **`product_reference_id`** sur **`ProductProvenanceForCollection`**.
+
+### Changed
+
+- **`ProductInstance`** : **`reference_id`** obligatoire ; suppression du code-barres commercial au niveau instance ; **`product_type`** et **`set_code`** documentés comme miroir dénormalisé de la référence.
+- **`RegistrationFromScanRunner`** : injection du dépôt références et de la fabrique d’identifiants de référence ; un scan **commercial** réutilise une référence existante mais **crée toujours une nouvelle instance** physique lorsque la référence est trouvée.
+- **`QualifyScannedProductUseCase`** : met à jour la référence catalogue et l’instance ; injection de **`ProductReferenceRepositoryPort`**.
+- **`GetSealedProductSnapshotService`** et **`GetProductStructuralViewService`** : injection de **`ProductReferenceRepositoryPort`** ; la vue structurelle expose les références alignées sur le produit, le parent et les enfants.
+
+### Removed
+
+- **`ProductRepositoryPort.find_by_commercial_barcode`** (remplacé par la résolution côté **`ProductReferenceRepositoryPort`**).
+
 ## [1.0.1] - 2026-04-05
 
 ### Summary

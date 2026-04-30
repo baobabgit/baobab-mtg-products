@@ -7,6 +7,7 @@ import pytest
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.domain.products.relationships.parent_child_relationship_rules import (
@@ -22,10 +23,11 @@ from baobab_mtg_products.exceptions.relationship.incompatible_parent_child_types
 
 def _inst(pid: str, ptype: ProductType) -> ProductInstance:
     return ProductInstance(
-        InternalProductId(pid),
-        ptype,
-        MtgSetCode("TS"),
-        ProductStatus.SEALED,
+        internal_id=InternalProductId(pid),
+        reference_id=ProductReferenceId(f"ref-{pid}"),
+        product_type=ptype,
+        set_code=MtgSetCode("TS"),
+        status=ProductStatus.SEALED,
     )
 
 

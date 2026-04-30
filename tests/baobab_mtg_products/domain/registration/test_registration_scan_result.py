@@ -3,6 +3,7 @@
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.domain.registration.registration_scan_outcome import (
@@ -20,6 +21,7 @@ class TestRegistrationScanResult:
         """Le résultat lie instance et issue."""
         product = ProductInstance(
             internal_id=InternalProductId("p"),
+            reference_id=ProductReferenceId("ref-p"),
             product_type=ProductType.DISPLAY,
             set_code=MtgSetCode("MH3"),
             status=ProductStatus.REGISTERED,

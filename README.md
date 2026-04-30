@@ -78,12 +78,14 @@ from baobab_mtg_products import (
     InternalProductId,
     MtgSetCode,
     ProductInstance,
+    ProductReferenceId,
     ProductStatus,
     ProductType,
 )
 
 instance = ProductInstance(
     internal_id=InternalProductId("uuid-ou-id-interne"),
+    reference_id=ProductReferenceId("ref-catalogue-partage"),
     product_type=ProductType.PLAY_BOOSTER,
     set_code=MtgSetCode("mh3"),
     status=ProductStatus.REGISTERED,
@@ -118,7 +120,7 @@ La liste exacte des symboles exportés par la racine est donnée par `baobab_mtg
 
 ### Enregistrement par scan
 
-Les applications implémentent les ports (`ProductRepositoryPort`, `BarcodeResolutionPort`, etc.), puis injectent un `RegistrationFromScanRunner` :
+Les applications implémentent les ports (`ProductRepositoryPort`, `ProductReferenceRepositoryPort`, `BarcodeResolutionPort`, fabriques d’identifiants, etc.), puis injectent un `RegistrationFromScanRunner` :
 
 ```python
 from baobab_mtg_products.domain.products import CommercialBarcode
@@ -127,10 +129,16 @@ from baobab_mtg_products.use_cases.registration import (
     RegistrationFromScanRunner,
 )
 
-# runner = RegistrationFromScanRunner(repo, resolution, id_factory, event_recorder, collection=…)
+# runner = RegistrationFromScanRunner(
+#     repo, ref_repo, resolution, id_factory, ref_id_factory, event_recorder, collection=…
+# )
 # use_case = RegisterProductByCommercialScanUseCase(CommercialBarcode("12345678"), runner)
-# result = use_case.execute()  # existing | new_known_from_catalog | new_pending_qualification
+# result = use_case.execute()
+# # outcomes : existing_product (scan interne), new_known_from_catalog, new_pending_qualification,
+# #           new_instance_shared_reference (nouvel exemplaire, même référence catalogue)
 ```
+
+Un même **code-barres commercial** peut désigner une **`ProductReference`** déjà persistée : le flux crée alors une **nouvelle** `ProductInstance` sans bloquer sur un doublon commercial (voir `RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE`). Le code-barres commercial et les métadonnées descriptives (nom, visuel) vivent sur **`ProductReference`** ; l’instance porte `reference_id` et une copie dénormalisée de type / set pour les règles métier existantes.
 
 Les adaptateurs **collection** et **statistiques** implémentent `CollectionPort` et `StatisticsPort` ; les cas d’usage concernés acceptent une injection **optionnelle** et publient des DTO stables après succès.
 
@@ -179,12 +187,14 @@ from baobab_mtg_products import (
     InternalProductId,
 )
 
-# snapshot = GetSealedProductSnapshotService(InternalProductId("…"), repo).load()
-# struct = GetProductStructuralViewService(InternalProductId("…"), repo).load()
-# # struct.product, struct.parent, struct.direct_children
+# snapshot = GetSealedProductSnapshotService(InternalProductId("…"), repo, ref_repo).load()
+# # snapshot.product, snapshot.reference (nom, image_uri, code-barres commercial…)
+# struct = GetProductStructuralViewService(InternalProductId("…"), repo, ref_repo).load()
+# # struct.product, struct.product_reference, struct.parent, struct.parent_reference,
+# # struct.direct_children, struct.child_references
 ```
 
-Le dépôt doit implémenter `list_direct_children_of_parent` sur `ProductRepositoryPort`.
+Les dépôts doivent implémenter `list_direct_children_of_parent` sur `ProductRepositoryPort` et les méthodes du `ProductReferenceRepositoryPort` pour résoudre les références associées aux instances.
 
 ### Historique métier
 
@@ -200,7 +210,7 @@ from baobab_mtg_products.domain.products import InternalProductId
 
 ## Qualité, couverture et release
 
-Après le tag public **`v1.0.0`**, les correctifs de chaîne release (packaging, métadonnées, extras `[dev]`) sont portés en **1.0.1** et suivants selon **SemVer** ; consulter `CHANGELOG.md` et `docs/RELEASE.md` avant publication.
+La **2.0.0** introduit la séparation **`ProductReference`** / **`ProductInstance`** (voir `CHANGELOG.md`). Les versions **1.x** restent documentées dans l’historique du changelog ; consulter `docs/RELEASE.md` avant publication.
 
 Une chaîne équivalente aux commandes ci-dessous est exécutée sur **push** et **pull_request** via **GitHub Actions** (`.github/workflows/ci.yml`), pour les versions de Python annoncées dans `pyproject.toml`.
 

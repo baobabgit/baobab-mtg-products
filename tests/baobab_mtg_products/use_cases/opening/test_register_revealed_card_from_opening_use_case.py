@@ -15,11 +15,11 @@ from baobab_mtg_products.domain.integration.sealed_product_opened_statistics_eve
 )
 from baobab_mtg_products.domain.opening.external_card_id import ExternalCardId
 from baobab_mtg_products.domain.opening.revealed_card_trace import RevealedCardTrace
-from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.exceptions.opening.duplicate_revealed_card_trace_error import (
@@ -45,13 +45,6 @@ class _Repo:
     def find_by_id(self, product_id: InternalProductId) -> Optional[ProductInstance]:
         """Voir :class:`ProductRepositoryPort`."""
         return self.by_id.get(product_id.value)
-
-    def find_by_commercial_barcode(
-        self,
-        barcode: CommercialBarcode,
-    ) -> Optional[ProductInstance]:
-        """Non utilisé."""
-        del barcode
 
     def find_by_internal_barcode(
         self,
@@ -179,10 +172,11 @@ class _StatisticsStub:
 
 def _opened() -> ProductInstance:
     return ProductInstance(
-        InternalProductId("o1"),
-        ProductType.COLLECTOR_BOOSTER,
-        MtgSetCode("TS"),
-        ProductStatus.OPENED,
+        internal_id=InternalProductId("o1"),
+        reference_id=ProductReferenceId("ref-o1"),
+        product_type=ProductType.COLLECTOR_BOOSTER,
+        set_code=MtgSetCode("TS"),
+        status=ProductStatus.OPENED,
     )
 
 
@@ -244,10 +238,11 @@ class TestRegisterRevealedCardFromOpeningUseCase:
         """Produit encore scellé."""
         repo = _Repo()
         sealed = ProductInstance(
-            InternalProductId("s1"),
-            ProductType.PLAY_BOOSTER,
-            MtgSetCode("TS"),
-            ProductStatus.SEALED,
+            internal_id=InternalProductId("s1"),
+            reference_id=ProductReferenceId("ref-s1"),
+            product_type=ProductType.PLAY_BOOSTER,
+            set_code=MtgSetCode("TS"),
+            status=ProductStatus.SEALED,
         )
         repo.save(sealed)
         with pytest.raises(ProductNotOpenedForCardTraceError):

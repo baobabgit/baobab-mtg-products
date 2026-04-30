@@ -34,6 +34,7 @@ class TestCollectionPort:
         adapter: CollectionPort = fake
         prov = ProductProvenanceForCollection(
             internal_product_id="p-1",
+            product_reference_id="ref-p-1",
             product_type_value="bundle",
             set_code_value="FDN",
             product_status_value="sealed",

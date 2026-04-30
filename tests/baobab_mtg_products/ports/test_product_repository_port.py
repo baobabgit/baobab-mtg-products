@@ -2,11 +2,11 @@
 
 from typing import Dict, Optional
 
-from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.ports.product_repository_port import ProductRepositoryPort
@@ -21,13 +21,6 @@ class _FakeRepo:
     def find_by_id(self, product_id: InternalProductId) -> Optional[ProductInstance]:
         """Voir :class:`ProductRepositoryPort`."""
         return self.by_id.get(product_id.value)
-
-    def find_by_commercial_barcode(
-        self,
-        _barcode: CommercialBarcode,
-    ) -> Optional[ProductInstance]:
-        """Voir :class:`ProductRepositoryPort`."""
-        return None
 
     def find_by_internal_barcode(
         self,
@@ -64,27 +57,30 @@ class TestProductRepositoryPort:
         root = InternalProductId("r")
         fake.save(
             ProductInstance(
-                root,
-                ProductType.DISPLAY,
-                MtgSetCode("TS"),
-                ProductStatus.SEALED,
+                internal_id=root,
+                reference_id=ProductReferenceId("ref-root"),
+                product_type=ProductType.DISPLAY,
+                set_code=MtgSetCode("TS"),
+                status=ProductStatus.SEALED,
             ),
         )
         fake.save(
             ProductInstance(
-                InternalProductId("z"),
-                ProductType.PLAY_BOOSTER,
-                MtgSetCode("TS"),
-                ProductStatus.SEALED,
+                internal_id=InternalProductId("z"),
+                reference_id=ProductReferenceId("ref-z"),
+                product_type=ProductType.PLAY_BOOSTER,
+                set_code=MtgSetCode("TS"),
+                status=ProductStatus.SEALED,
                 parent_id=root,
             ),
         )
         fake.save(
             ProductInstance(
-                InternalProductId("a"),
-                ProductType.SET_BOOSTER,
-                MtgSetCode("TS"),
-                ProductStatus.SEALED,
+                internal_id=InternalProductId("a"),
+                reference_id=ProductReferenceId("ref-a"),
+                product_type=ProductType.SET_BOOSTER,
+                set_code=MtgSetCode("TS"),
+                status=ProductStatus.SEALED,
                 parent_id=root,
             ),
         )

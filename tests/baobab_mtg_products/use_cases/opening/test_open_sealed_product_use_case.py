@@ -13,11 +13,11 @@ from baobab_mtg_products.domain.integration.product_provenance_for_collection im
 from baobab_mtg_products.domain.integration.sealed_product_opened_statistics_event import (
     SealedProductOpenedStatisticsEvent,
 )
-from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.exceptions.opening.product_already_opened_error import (
@@ -46,13 +46,6 @@ class _Repo:
     def find_by_id(self, product_id: InternalProductId) -> Optional[ProductInstance]:
         """Voir :class:`ProductRepositoryPort`."""
         return self.by_id.get(product_id.value)
-
-    def find_by_commercial_barcode(
-        self,
-        barcode: CommercialBarcode,
-    ) -> Optional[ProductInstance]:
-        """Non utilisé."""
-        del barcode
 
     def find_by_internal_barcode(
         self,
@@ -173,10 +166,11 @@ class _StatisticsStub:
 
 def _booster(status: ProductStatus = ProductStatus.SEALED) -> ProductInstance:
     return ProductInstance(
-        InternalProductId("b1"),
-        ProductType.PLAY_BOOSTER,
-        MtgSetCode("MH3"),
-        status,
+        internal_id=InternalProductId("b1"),
+        reference_id=ProductReferenceId("ref-b1"),
+        product_type=ProductType.PLAY_BOOSTER,
+        set_code=MtgSetCode("MH3"),
+        status=status,
     )
 
 
@@ -239,10 +233,11 @@ class TestOpenSealedProductUseCase:
         """Type display."""
         repo = _Repo()
         d = ProductInstance(
-            InternalProductId("d1"),
-            ProductType.DISPLAY,
-            MtgSetCode("MH3"),
-            ProductStatus.SEALED,
+            internal_id=InternalProductId("d1"),
+            reference_id=ProductReferenceId("ref-d1"),
+            product_type=ProductType.DISPLAY,
+            set_code=MtgSetCode("MH3"),
+            status=ProductStatus.SEALED,
         )
         repo.save(d)
         with pytest.raises(ProductNotOpenableError):

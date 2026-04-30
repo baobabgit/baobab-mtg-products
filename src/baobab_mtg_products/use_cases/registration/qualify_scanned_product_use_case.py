@@ -16,7 +16,13 @@ from baobab_mtg_products.exceptions.registration.invalid_qualification_state_err
 from baobab_mtg_products.exceptions.registration.product_not_found_for_workflow_error import (
     ProductNotFoundForWorkflowError,
 )
+from baobab_mtg_products.exceptions.registration.missing_product_ref_workflow_error import (
+    ProductReferenceNotFoundForWorkflowError,
+)
 from baobab_mtg_products.ports.collection_port import CollectionPort
+from baobab_mtg_products.ports.product_reference_repository_port import (
+    ProductReferenceRepositoryPort,
+)
 from baobab_mtg_products.ports.product_repository_port import ProductRepositoryPort
 from baobab_mtg_products.ports.product_workflow_event_recorder_port import (
     ProductWorkflowEventRecorderPort,
@@ -27,19 +33,25 @@ from baobab_mtg_products.use_cases.use_case import UseCase
 class QualifyScannedProductUseCase(UseCase[ProductInstance]):
     """Fixe type et set métier pour un produit en attente après scan.
 
+    Met à jour la :class:`~baobab_mtg_products.domain.products.product_reference.ProductReference`
+    liée (source catalogue) et aligne les champs dénormalisés sur l'instance.
+
     :param product_id: Identifiant de l'instance à qualifier.
     :type product_id: InternalProductId
     :param product_type: Type définitif choisi par l'opérateur.
     :type product_type: ProductType
     :param set_code: Code de set définitif.
     :type set_code: MtgSetCode
-    :param repository: Dépôt à mettre à jour.
+    :param repository: Dépôt des instances à mettre à jour.
     :type repository: ProductRepositoryPort
+    :param reference_repository: Dépôt des références catalogue à mettre à jour.
+    :type reference_repository: ProductReferenceRepositoryPort
     :param events: Journal pour l'événement de qualification.
     :type events: ProductWorkflowEventRecorderPort
     :param collection: Synchronisation collection après qualification, si fourni.
     :type collection: CollectionPort | None
-    :raises ProductNotFoundForWorkflowError: si l'identifiant est inconnu.
+    :raises ProductNotFoundForWorkflowError: si l'identifiant instance est inconnu.
+    :raises ProductReferenceNotFoundForWorkflowError: si la référence liée est absente.
     :raises InvalidQualificationStateError: si le statut n'est pas ``registered``.
     """
 
@@ -49,6 +61,7 @@ class QualifyScannedProductUseCase(UseCase[ProductInstance]):
         product_type: ProductType,
         set_code: MtgSetCode,
         repository: ProductRepositoryPort,
+        reference_repository: ProductReferenceRepositoryPort,
         events: ProductWorkflowEventRecorderPort,
         collection: Optional[CollectionPort] = None,
     ) -> None:
@@ -56,11 +69,12 @@ class QualifyScannedProductUseCase(UseCase[ProductInstance]):
         self._product_type = product_type
         self._set_code = set_code
         self._repository = repository
+        self._reference_repository = reference_repository
         self._events = events
         self._collection = collection
 
     def execute(self) -> ProductInstance:
-        """Qualifie puis persiste l'instance mise à jour.
+        """Qualifie puis persiste la référence et l'instance mises à jour.
 
         :return: Produit après qualification.
         :rtype: ProductInstance
@@ -70,10 +84,21 @@ class QualifyScannedProductUseCase(UseCase[ProductInstance]):
             raise ProductNotFoundForWorkflowError(
                 "Aucun produit ne correspond à l'identifiant fourni pour qualification.",
             )
+        reference = self._reference_repository.find_by_id(existing.reference_id)
+        if reference is None:
+            raise ProductReferenceNotFoundForWorkflowError(
+                "Aucune référence catalogue ne correspond au rattachement de ce produit.",
+            )
         if existing.status is not ProductStatus.REGISTERED:
             raise InvalidQualificationStateError(
                 "Seul un produit au statut « registered » peut être qualifié via ce flux.",
             )
+        updated_ref = reference.derived_with(
+            product_type=self._product_type,
+            set_code=self._set_code,
+            requires_qualification=False,
+        )
+        self._reference_repository.save(updated_ref)
         updated = existing.derived_with(
             product_type=self._product_type,
             set_code=self._set_code,
