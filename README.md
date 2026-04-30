@@ -17,7 +17,7 @@ Librairie Python **métier** et **typée** (`py.typed`) pour la gestion des prod
 
 ## Périmètre
 
-**Inclus** (voir `docs/001_specifications.md`) : types et instances de produits scellés, statuts, codes-barres, série, set, relations parent-enfant, ouverture, traces carte ↔ produit ouvert, historique métier, intégration collection/statistiques via ports, consultation structurée.
+**Inclus** (voir `docs/001_specifications.md`) : références produits, instances physiques, statuts, codes-barres commerciaux non uniques au niveau instance, codes de production non uniques, codes internes uniques si générés, relations parent-enfant, déconditionnement de contenants, ouverture, traces carte ↔ produit ouvert, historique métier, intégration collection/statistiques via ports, consultation structurée et contrats de persistance.
 
 **Exclus** : règles de jeu, deckbuilding, possession globale utilisateur, API REST/GraphQL, UI.
 
@@ -221,6 +221,8 @@ Les données de couverture sont configurées dans `pyproject.toml` (seuil minima
 ## Documentation
 
 - Cahier des charges : `docs/001_specifications.md`
+- Note d’architecture références / instances / persistance : `docs/002_product_reference_instance_persistence_guidance.md`
+- Nouvelles features post-1.0.1 : `docs/features/09_product_reference_instance_split.md` à `docs/features/13_persistence_contracts_database_insertion.md`
 - Contraintes de développement : `docs/000_dev_constraints.md`
 - Journal de développement : `docs/dev_diary.md`
 - Journal des versions : `CHANGELOG.md`
