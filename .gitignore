@@ -298,8 +298,8 @@ local_settings.py
 db.sqlite3
 db.sqlite3-journal
 
-# Flask stuff:
-instance/
+# Flask stuff (répertoire runtime à la racine du projet, pas les packages nommés « instance ») :
+/instance/
 .webassets-cache
 
 # Scrapy stuff:

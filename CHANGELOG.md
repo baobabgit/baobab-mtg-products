@@ -4,6 +4,23 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.1.0] - 2026-05-01
+
+### Summary
+
+Version **mineure** : création explicite d’**instances physiques** à partir d’une référence catalogue, **code de production / lot optionnel et non unique**, code-barres interne **unique s’il est renseigné**, et journalisation dédiée.
+
+### Added
+
+- Value object **`ProductionCode`** (lot / fabrication non unique) et exceptions **`InvalidProductionCodeError`**, **`DuplicateInternalBarcodeError`**.
+- Cas d’usage **`CreateProductInstanceUseCase`** et **`AssignProductionCodeToProductInstanceUseCase`**.
+- Champ **`production_code`** sur **`ProductInstance`** ; méthodes de dépôt **`list_by_reference_id`** et **`list_by_production_code`** (tuple trié, jamais sémantique d’unicité).
+- Événements métier **`INSTANCE_CREATED`** et **`PRODUCTION_CODE_ASSIGNED`** (port workflow + implémentation **`InMemoryProductBusinessEventLedger`**).
+
+### Changed
+
+- Distinction documentée entre **`SerialNumber`** (piste qualité unitaire optionnelle) et **`ProductionCode`** (lot partagé par plusieurs exemplaires).
+
 ## [2.0.0] - 2026-05-01
 
 ### Summary

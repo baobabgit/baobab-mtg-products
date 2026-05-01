@@ -45,5 +45,5 @@ class TestBaobabMtgProductsRoot:
             side_effect=PackageNotFoundError(),
         ):
             importlib.reload(baobab_mtg_products)
-            assert baobab_mtg_products.__version__ == "2.0.0"
+            assert baobab_mtg_products.__version__ == "2.1.0"
         importlib.reload(baobab_mtg_products)

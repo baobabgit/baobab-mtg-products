@@ -2,6 +2,22 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-05-01 18:00:00 — feature 10_physical_instance_creation_and_production_code
+
+### Modifications
+
+- **`ProductionCode`**, exceptions associées, **`CreateProductInstanceUseCase`**, **`AssignProductionCodeToProductInstanceUseCase`** ; **`ProductInstance.production_code`**.
+- **`ProductRepositoryPort.list_by_reference_id`** / **`list_by_production_code`** ; événements **`INSTANCE_CREATED`**, **`PRODUCTION_CODE_ASSIGNED`** sur le port workflow et le ledger mémoire.
+- Exports racine (**`ProductionCode`**, cas d’usage, **`DuplicateInternalBarcodeError`**, **`ProductReferenceNotFoundForWorkflowError`**), **`CHANGELOG` [2.1.0]**, **`README`**, tests unitaires et de workflow.
+
+### Buts
+
+- Permettre plusieurs exemplaires d’une même référence avec le même code de lot sans confondre avec l’identité forte (**`internal_id`**), tout en imposant l’unicité du code-barres interne lorsqu’il existe.
+
+### Impact
+
+- **Mineur** SemVer **2.1.0** : les adaptateurs de **`ProductRepositoryPort`** et de **`ProductWorkflowEventRecorderPort`** doivent implémenter les nouvelles signatures.
+
 ## 2026-05-01 12:00:00 — feature 09_product_reference_instance_split
 
 ### Modifications

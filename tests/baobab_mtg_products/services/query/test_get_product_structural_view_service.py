@@ -12,6 +12,7 @@ from baobab_mtg_products.domain.products.product_reference import ProductReferen
 from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
+from baobab_mtg_products.domain.products.production_code import ProductionCode
 from baobab_mtg_products.exceptions.query.missing_referenced_parent_product_error import (
     MissingReferencedParentProductError,
 )
@@ -42,6 +43,28 @@ class _Repo:
     ) -> Optional[ProductInstance]:
         """Voir :class:`ProductRepositoryPort`."""
         return None
+
+    def list_by_reference_id(
+        self,
+        reference_id: ProductReferenceId,
+    ) -> tuple[ProductInstance, ...]:
+        """Voir :class:`ProductRepositoryPort`."""
+        rows = [p for p in self.by_id.values() if p.reference_id.value == reference_id.value]
+        rows.sort(key=lambda p: p.internal_id.value)
+        return tuple(rows)
+
+    def list_by_production_code(
+        self,
+        code: ProductionCode,
+    ) -> tuple[ProductInstance, ...]:
+        """Voir :class:`ProductRepositoryPort`."""
+        rows = [
+            p
+            for p in self.by_id.values()
+            if p.production_code is not None and p.production_code.value == code.value
+        ]
+        rows.sort(key=lambda p: p.internal_id.value)
+        return tuple(rows)
 
     def list_direct_children_of_parent(
         self,

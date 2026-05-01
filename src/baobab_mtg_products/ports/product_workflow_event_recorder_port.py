@@ -101,3 +101,31 @@ class ProductWorkflowEventRecorderPort(Protocol):
         :type scan_payload: str
         """
         ...
+
+    def record_product_instance_created(
+        self,
+        product_id: str,
+        reference_id: str,
+    ) -> None:
+        """Enregistre la création explicite d'une instance physique rattachée à une référence.
+
+        :param product_id: Identifiant interne de la nouvelle instance.
+        :type product_id: str
+        :param reference_id: Identifiant textuel de la référence catalogue associée.
+        :type reference_id: str
+        """
+        ...
+
+    def record_production_code_assigned(
+        self,
+        product_id: str,
+        production_code: str,
+    ) -> None:
+        """Enregistre l'association (ou la mise à jour) d'un code de production sur l'instance.
+
+        :param product_id: Identifiant interne de l'instance concernée.
+        :type product_id: str
+        :param production_code: Valeur normalisée du code de production.
+        :type production_code: str
+        """
+        ...

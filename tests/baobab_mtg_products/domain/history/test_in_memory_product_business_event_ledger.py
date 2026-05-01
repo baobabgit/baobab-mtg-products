@@ -166,3 +166,29 @@ class TestInMemoryProductBusinessEventLedger:
         kinds = [e.kind for e in ledger.list_events_for_product("b")]
         assert kinds[-2] is ProductBusinessEventKind.CARD_REVEALED_FROM_OPENING
         assert kinds[-1] is ProductBusinessEventKind.OPENING_CARD_SCAN
+
+    def test_instance_created_then_production_code_assigned(self) -> None:
+        """Création d'instance et association de code de lot sont journalisées."""
+        ledger = InMemoryProductBusinessEventLedger()
+        ledger.record_product_instance_created("n1", "ref-42")
+        ledger.record_production_code_assigned("n1", "LOT-1")
+        events = ledger.list_events_for_product("n1")
+        assert [e.kind for e in events] == [
+            ProductBusinessEventKind.INSTANCE_CREATED,
+            ProductBusinessEventKind.PRODUCTION_CODE_ASSIGNED,
+        ]
+        assert events[0].payload.reference_id == "ref-42"
+        assert events[1].payload.production_code_value == "LOT-1"
+
+    def test_rejects_duplicate_instance_created(self) -> None:
+        """Double création journalisée pour le même identifiant."""
+        ledger = InMemoryProductBusinessEventLedger()
+        ledger.record_product_instance_created("dup", "ref-x")
+        with pytest.raises(ProductHistoryCoherenceError):
+            ledger.record_product_instance_created("dup", "ref-x")
+
+    def test_rejects_production_code_on_unknown_instance(self) -> None:
+        """Association de code sans instance connue du journal."""
+        ledger = InMemoryProductBusinessEventLedger()
+        with pytest.raises(ProductHistoryCoherenceError):
+            ledger.record_production_code_assigned("unknown", "LOT")

@@ -14,3 +14,5 @@ class ProductBusinessEventKind(str, Enum):
     OPENED = "opened"
     CARD_REVEALED_FROM_OPENING = "card_revealed_from_opening"
     OPENING_CARD_SCAN = "opening_card_scan"
+    INSTANCE_CREATED = "instance_created"
+    PRODUCTION_CODE_ASSIGNED = "production_code_assigned"
