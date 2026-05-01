@@ -14,6 +14,8 @@ class ProductProvenanceForCollection:
 
     :param internal_product_id: Identifiant interne stable.
     :type internal_product_id: str
+    :param product_reference_id: Identifiant de la référence catalogue liée.
+    :type product_reference_id: str
     :param product_type_value: Valeur d'énumération du type scellé.
     :type product_type_value: str
     :param set_code_value: Code d'extension (normalisé côté domaine).
@@ -25,6 +27,7 @@ class ProductProvenanceForCollection:
     """
 
     internal_product_id: str
+    product_reference_id: str
     product_type_value: str
     set_code_value: str
     product_status_value: str
@@ -42,6 +45,7 @@ class ProductProvenanceForCollection:
         parent: Optional[str] = instance.parent_id.value if instance.parent_id is not None else None
         return cls(
             internal_product_id=instance.internal_id.value,
+            product_reference_id=instance.reference_id.value,
             product_type_value=instance.product_type.value,
             set_code_value=instance.set_code.value,
             product_status_value=instance.status.value,

@@ -9,6 +9,8 @@ from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference import ProductReference
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.domain.products.serial_number import SerialNumber
@@ -28,23 +30,15 @@ from baobab_mtg_products.use_cases.registration.registration_from_scan_runner im
 
 
 class _FakeRepo:
-    """Double de dépôt en mémoire."""
+    """Double de dépôt instance en mémoire."""
 
     def __init__(self) -> None:
         self.by_id: Dict[str, ProductInstance] = {}
-        self.by_com: Dict[str, ProductInstance] = {}
         self.by_int: Dict[str, ProductInstance] = {}
 
     def find_by_id(self, product_id: InternalProductId) -> Optional[ProductInstance]:
         """Voir :class:`ProductRepositoryPort`."""
         return self.by_id.get(product_id.value)
-
-    def find_by_commercial_barcode(
-        self,
-        barcode: CommercialBarcode,
-    ) -> Optional[ProductInstance]:
-        """Voir :class:`ProductRepositoryPort`."""
-        return self.by_com.get(barcode.value)
 
     def find_by_internal_barcode(
         self,
@@ -56,8 +50,6 @@ class _FakeRepo:
     def save(self, product: ProductInstance) -> None:
         """Voir :class:`ProductRepositoryPort`."""
         self.by_id[product.internal_id.value] = product
-        if product.commercial_barcode is not None:
-            self.by_com[product.commercial_barcode.value] = product
         if product.internal_barcode is not None:
             self.by_int[product.internal_barcode.value] = product
 
@@ -73,6 +65,31 @@ class _FakeRepo:
         ]
         kids.sort(key=lambda p: p.internal_id.value)
         return tuple(kids)
+
+
+class _FakeRefRepo:
+    """Double de dépôt références."""
+
+    def __init__(self) -> None:
+        self.by_id: Dict[str, ProductReference] = {}
+        self.by_com: Dict[str, ProductReference] = {}
+
+    def find_by_id(self, reference_id: ProductReferenceId) -> Optional[ProductReference]:
+        """Voir :class:`ProductReferenceRepositoryPort`."""
+        return self.by_id.get(reference_id.value)
+
+    def find_by_commercial_barcode(
+        self,
+        barcode: CommercialBarcode,
+    ) -> Optional[ProductReference]:
+        """Voir :class:`ProductReferenceRepositoryPort`."""
+        return self.by_com.get(barcode.value)
+
+    def save(self, reference: ProductReference) -> None:
+        """Voir :class:`ProductReferenceRepositoryPort`."""
+        self.by_id[reference.reference_id.value] = reference
+        if reference.commercial_barcode is not None:
+            self.by_com[reference.commercial_barcode.value] = reference
 
 
 class _FakeResolution:
@@ -107,7 +124,7 @@ class _FakeResolution:
 
 
 class _FakeIdFactory:
-    """Fournit des identifiants prévisibles."""
+    """Fournit des identifiants d'instance prévisibles."""
 
     def __init__(self, ids: List[str]) -> None:
         self._ids = list(ids)
@@ -115,6 +132,17 @@ class _FakeIdFactory:
     def new_product_id(self) -> InternalProductId:
         """Voir :class:`InternalProductIdFactoryPort`."""
         return InternalProductId(self._ids.pop(0))
+
+
+class _FakeRefIdFactory:
+    """Fournit des identifiants de référence prévisibles."""
+
+    def __init__(self, ids: List[str]) -> None:
+        self._ids = list(ids)
+
+    def new_reference_id(self) -> ProductReferenceId:
+        """Voir :class:`ProductReferenceIdFactoryPort`."""
+        return ProductReferenceId(self._ids.pop(0))
 
 
 class _FakeEvents:
@@ -187,72 +215,131 @@ class _FakeCollection:
         del link
 
 
+def _runner(
+    repo: _FakeRepo,
+    ref_repo: _FakeRefRepo,
+    resolution: _FakeResolution,
+    instance_ids: List[str],
+    ref_ids: List[str],
+    events: _FakeEvents,
+    collection: Optional[_FakeCollection] = None,
+) -> RegistrationFromScanRunner:
+    return RegistrationFromScanRunner(
+        repo,
+        ref_repo,
+        resolution,
+        _FakeIdFactory(instance_ids),
+        _FakeRefIdFactory(ref_ids),
+        events,
+        collection=collection,
+    )
+
+
 class TestRegistrationFromScanRunner:
     """Branches principales du flux scan → persistance."""
 
-    def test_commercial_existing_records_scan_only(self) -> None:
-        """Produit connu : scan journalisé, pas de nouvel enregistrement."""
+    def test_commercial_shared_reference_uses_catalog_display_name(self) -> None:
+        """Le nom catalogue proposé par :class:`ResolvedFromScan` prime sur les fallback."""
         repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
         events = _FakeEvents()
-        existing = ProductInstance(
-            InternalProductId("old"),
-            ProductType.PLAY_BOOSTER,
-            MtgSetCode("MH3"),
-            ProductStatus.SEALED,
-            commercial_barcode=CommercialBarcode("12345678"),
+        resolution = _FakeResolution(
+            ResolvedFromScan(
+                ProductType.BUNDLE,
+                MtgSetCode("FDN"),
+                display_name="  Nom catalogue  ",
+            ),
+            ResolvedFromScan(None, None),
         )
-        repo.save(existing)
+        runner = _runner(repo, ref_repo, resolution, ["id-n"], ["ref-dn"], events)
+        runner.register_via_commercial(CommercialBarcode("55555555"))
+        assert ref_repo.by_id["ref-dn"].name == "Nom catalogue"
+
+    def test_commercial_shared_reference_pending_when_reference_incomplete(self) -> None:
+        """Référence encore à qualifier : nouvelle instance « registered »."""
+        repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
+        events = _FakeEvents()
+        shared_ref = ProductReference(
+            ProductReferenceId("ref-pend"),
+            name="Pending ref",
+            product_type=ProductType.OTHER_SEALED,
+            set_code=MtgSetCode("QQ"),
+            requires_qualification=True,
+            commercial_barcode=CommercialBarcode("66666666"),
+        )
+        ref_repo.save(shared_ref)
         resolution = _FakeResolution(
             ResolvedFromScan(None, None),
             ResolvedFromScan(None, None),
         )
-        runner = RegistrationFromScanRunner(
-            repo,
-            resolution,
-            _FakeIdFactory(["unused"]),
-            events,
+        runner = _runner(repo, ref_repo, resolution, ["new-p"], [], events)
+        result = runner.register_via_commercial(CommercialBarcode("66666666"))
+        assert result.outcome is RegistrationScanOutcome.NEW_PENDING_QUALIFICATION
+        assert result.product.status is ProductStatus.REGISTERED
+
+    def test_commercial_shared_reference_creates_new_instance(self) -> None:
+        """Même code commercial : nouvelle instance, référence réutilisée."""
+        repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
+        events = _FakeEvents()
+        shared_ref = ProductReference(
+            ProductReferenceId("ref-shared"),
+            name="MH3 Play",
+            product_type=ProductType.PLAY_BOOSTER,
+            set_code=MtgSetCode("MH3"),
+            requires_qualification=False,
+            commercial_barcode=CommercialBarcode("12345678"),
         )
+        ref_repo.save(shared_ref)
+        existing_inst = ProductInstance(
+            internal_id=InternalProductId("old"),
+            reference_id=shared_ref.reference_id,
+            product_type=ProductType.PLAY_BOOSTER,
+            set_code=MtgSetCode("MH3"),
+            status=ProductStatus.SEALED,
+        )
+        repo.save(existing_inst)
+        resolution = _FakeResolution(
+            ResolvedFromScan(None, None),
+            ResolvedFromScan(None, None),
+        )
+        runner = _runner(repo, ref_repo, resolution, ["new-a"], [], events)
         result = runner.register_via_commercial(CommercialBarcode("12345678"))
-        assert result.outcome is RegistrationScanOutcome.EXISTING_PRODUCT
-        assert result.product.internal_id.value == "old"
-        assert not events.regs
-        assert events.scans == [("old", "commercial", "12345678")]
+        assert result.outcome is RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE
+        assert result.product.internal_id.value == "new-a"
+        assert result.product.reference_id.value == "ref-shared"
+        assert events.regs == ["new-a"]
+        assert events.scans == [("new-a", "commercial", "12345678")]
 
     def test_commercial_new_known_from_catalog(self) -> None:
         """Catalogue complet : statut qualifié et issue « new known »."""
         repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
         events = _FakeEvents()
         resolution = _FakeResolution(
             ResolvedFromScan(ProductType.BUNDLE, MtgSetCode("FDN")),
             ResolvedFromScan(None, None),
         )
-        runner = RegistrationFromScanRunner(
-            repo,
-            resolution,
-            _FakeIdFactory(["n1"]),
-            events,
-        )
+        runner = _runner(repo, ref_repo, resolution, ["n1"], ["r1"], events)
         result = runner.register_via_commercial(CommercialBarcode("12345678"))
         assert result.outcome is RegistrationScanOutcome.NEW_KNOWN_FROM_CATALOG
         assert result.product.status is ProductStatus.QUALIFIED
         assert result.product.product_type is ProductType.BUNDLE
+        assert ref_repo.by_id["r1"].commercial_barcode is not None
         assert events.regs == ["n1"]
         assert len(events.scans) == 1
 
     def test_commercial_new_pending_qualification(self) -> None:
         """Catalogue vide : placeholder set et type « autre scellé »."""
         repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
         events = _FakeEvents()
         resolution = _FakeResolution(
             ResolvedFromScan(None, None),
             ResolvedFromScan(None, None),
         )
-        runner = RegistrationFromScanRunner(
-            repo,
-            resolution,
-            _FakeIdFactory(["u1"]),
-            events,
-        )
+        runner = _runner(repo, ref_repo, resolution, ["u1"], ["r2"], events)
         result = runner.register_via_commercial(CommercialBarcode("87654321"))
         assert result.outcome is RegistrationScanOutcome.NEW_PENDING_QUALIFICATION
         assert result.product.status is ProductStatus.REGISTERED
@@ -262,17 +349,13 @@ class TestRegistrationFromScanRunner:
     def test_set_override_still_pending_if_type_missing(self) -> None:
         """Override partiel : set fourni mais type encore générique."""
         repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
         events = _FakeEvents()
         resolution = _FakeResolution(
             ResolvedFromScan(None, None),
             ResolvedFromScan(None, None),
         )
-        runner = RegistrationFromScanRunner(
-            repo,
-            resolution,
-            _FakeIdFactory(["o1"]),
-            events,
-        )
+        runner = _runner(repo, ref_repo, resolution, ["o1"], ["r3"], events)
         result = runner.register_via_commercial(
             CommercialBarcode("11111111"),
             set_code_override=MtgSetCode("MH3"),
@@ -283,17 +366,13 @@ class TestRegistrationFromScanRunner:
     def test_serial_number_attached_on_create(self) -> None:
         """Le numéro de série optionnel est posé sur la nouvelle instance."""
         repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
         events = _FakeEvents()
         resolution = _FakeResolution(
             ResolvedFromScan(ProductType.DRAFT_BOOSTER, MtgSetCode("ABC")),
             ResolvedFromScan(None, None),
         )
-        runner = RegistrationFromScanRunner(
-            repo,
-            resolution,
-            _FakeIdFactory(["s1"]),
-            events,
-        )
+        runner = _runner(repo, ref_repo, resolution, ["s1"], ["r4"], events)
         serial = SerialNumber("SN-1")
         result = runner.register_via_commercial(
             CommercialBarcode("22222222"),
@@ -304,13 +383,23 @@ class TestRegistrationFromScanRunner:
     def test_internal_existing_records_scan_only(self) -> None:
         """Produit connu par code interne : journalisation du scan uniquement."""
         repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
         events = _FakeEvents()
         internal = InternalBarcode("known-tag")
+        ref = ProductReference(
+            ProductReferenceId("ref-int"),
+            name="Internal ref",
+            product_type=ProductType.SET_BOOSTER,
+            set_code=MtgSetCode("MH2"),
+            requires_qualification=False,
+        )
+        ref_repo.save(ref)
         existing = ProductInstance(
-            InternalProductId("int-old"),
-            ProductType.SET_BOOSTER,
-            MtgSetCode("MH2"),
-            ProductStatus.SEALED,
+            internal_id=InternalProductId("int-old"),
+            reference_id=ref.reference_id,
+            product_type=ProductType.SET_BOOSTER,
+            set_code=MtgSetCode("MH2"),
+            status=ProductStatus.SEALED,
             internal_barcode=internal,
         )
         repo.save(existing)
@@ -318,10 +407,12 @@ class TestRegistrationFromScanRunner:
             ResolvedFromScan(None, None),
             ResolvedFromScan(None, None),
         )
-        runner = RegistrationFromScanRunner(
+        runner = _runner(
             repo,
+            ref_repo,
             resolution,
-            _FakeIdFactory(["unused-internal"]),
+            ["unused-internal"],
+            [],
             events,
         )
         result = runner.register_via_internal(internal)
@@ -332,17 +423,13 @@ class TestRegistrationFromScanRunner:
     def test_internal_scan_persists_internal_barcode(self) -> None:
         """Scan interne : code interne renseigné sur l'instance."""
         repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
         events = _FakeEvents()
         resolution = _FakeResolution(
             ResolvedFromScan(None, None),
             ResolvedFromScan(ProductType.PLAY_BOOSTER, MtgSetCode("MH1")),
         )
-        runner = RegistrationFromScanRunner(
-            repo,
-            resolution,
-            _FakeIdFactory(["i1"]),
-            events,
-        )
+        runner = _runner(repo, ref_repo, resolution, ["i1"], ["r5"], events)
         internal = InternalBarcode("tag-1")
         result = runner.register_via_internal(internal)
         assert result.product.internal_barcode == internal
@@ -351,17 +438,13 @@ class TestRegistrationFromScanRunner:
     def test_both_overrides_produce_qualified_without_catalog(self) -> None:
         """Overrides opérateur complets : pas d'attente de qualification."""
         repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
         events = _FakeEvents()
         resolution = _FakeResolution(
             ResolvedFromScan(None, None),
             ResolvedFromScan(None, None),
         )
-        runner = RegistrationFromScanRunner(
-            repo,
-            resolution,
-            _FakeIdFactory(["f1"]),
-            events,
-        )
+        runner = _runner(repo, ref_repo, resolution, ["f1"], ["r6"], events)
         result = runner.register_via_commercial(
             CommercialBarcode("44444444"),
             product_type_override=ProductType.BUNDLE,
@@ -373,56 +456,67 @@ class TestRegistrationFromScanRunner:
     def test_ambiguous_resolution_propagates(self) -> None:
         """Une ambiguïté catalogue remonte telle quelle."""
         repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
         events = _FakeEvents()
         resolution = _FakeResolution(
             ResolvedFromScan(None, None),
             ResolvedFromScan(None, None),
             raise_on_commercial=True,
         )
-        runner = RegistrationFromScanRunner(
-            repo,
-            resolution,
-            _FakeIdFactory(["x"]),
-            events,
-        )
+        runner = _runner(repo, ref_repo, resolution, ["x"], [], events)
         with pytest.raises(AmbiguousBarcodeResolutionError):
             runner.register_via_commercial(CommercialBarcode("33333333"))
 
     def test_collection_receives_provenance_when_configured(self) -> None:
         """Si un port collection est injecté, chaque issue publie la provenance."""
         repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
         events = _FakeEvents()
         collection = _FakeCollection()
-        existing = ProductInstance(
-            InternalProductId("old"),
-            ProductType.PLAY_BOOSTER,
-            MtgSetCode("MH3"),
-            ProductStatus.SEALED,
+        shared_ref = ProductReference(
+            ProductReferenceId("ref-col"),
+            name="Col",
+            product_type=ProductType.PLAY_BOOSTER,
+            set_code=MtgSetCode("MH3"),
+            requires_qualification=False,
             commercial_barcode=CommercialBarcode("12345678"),
         )
-        repo.save(existing)
+        ref_repo.save(shared_ref)
+        repo.save(
+            ProductInstance(
+                internal_id=InternalProductId("old"),
+                reference_id=shared_ref.reference_id,
+                product_type=ProductType.PLAY_BOOSTER,
+                set_code=MtgSetCode("MH3"),
+                status=ProductStatus.SEALED,
+            ),
+        )
         resolution = _FakeResolution(
             ResolvedFromScan(None, None),
             ResolvedFromScan(None, None),
         )
-        runner = RegistrationFromScanRunner(
+        runner = _runner(
             repo,
+            ref_repo,
             resolution,
-            _FakeIdFactory(["unused"]),
+            ["new-col"],
+            [],
             events,
             collection=collection,
         )
         runner.register_via_commercial(CommercialBarcode("12345678"))
         assert len(collection.provenance) == 1
-        assert collection.provenance[0].internal_product_id == "old"
+        assert collection.provenance[0].internal_product_id == "new-col"
 
-        runner2 = RegistrationFromScanRunner(
+        runner2 = _runner(
             repo,
+            ref_repo,
             _FakeResolution(
                 ResolvedFromScan(ProductType.BUNDLE, MtgSetCode("FDN")),
                 ResolvedFromScan(None, None),
             ),
-            _FakeIdFactory(["n2"]),
+            ["n2"],
+            ["r-new"],
             events,
             collection=collection,
         )

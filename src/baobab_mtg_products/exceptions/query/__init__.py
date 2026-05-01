@@ -6,5 +6,12 @@ from baobab_mtg_products.exceptions.query.missing_referenced_parent_product_erro
 from baobab_mtg_products.exceptions.query.product_not_found_for_query_error import (
     ProductNotFoundForQueryError,
 )
+from baobab_mtg_products.exceptions.query.product_reference_not_found_for_query_error import (
+    ProductReferenceNotFoundForQueryError,
+)
 
-__all__ = ["MissingReferencedParentProductError", "ProductNotFoundForQueryError"]
+__all__ = [
+    "MissingReferencedParentProductError",
+    "ProductNotFoundForQueryError",
+    "ProductReferenceNotFoundForQueryError",
+]

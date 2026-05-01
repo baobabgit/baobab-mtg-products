@@ -8,6 +8,7 @@ from baobab_mtg_products.domain.opening.opened_product_card_trace_rules import (
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.exceptions.opening.product_not_opened_for_card_trace_error import (
@@ -17,10 +18,11 @@ from baobab_mtg_products.exceptions.opening.product_not_opened_for_card_trace_er
 
 def _inst(status: ProductStatus) -> ProductInstance:
     return ProductInstance(
-        InternalProductId("p"),
-        ProductType.DRAFT_BOOSTER,
-        MtgSetCode("TS"),
-        status,
+        internal_id=InternalProductId("p"),
+        reference_id=ProductReferenceId("ref-p"),
+        product_type=ProductType.DRAFT_BOOSTER,
+        set_code=MtgSetCode("TS"),
+        status=status,
     )
 
 

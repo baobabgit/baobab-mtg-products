@@ -8,6 +8,12 @@ from baobab_mtg_products.ports.collection_port import CollectionPort
 from baobab_mtg_products.ports.internal_product_id_factory_port import (
     InternalProductIdFactoryPort,
 )
+from baobab_mtg_products.ports.product_reference_id_factory_port import (
+    ProductReferenceIdFactoryPort,
+)
+from baobab_mtg_products.ports.product_reference_repository_port import (
+    ProductReferenceRepositoryPort,
+)
 from baobab_mtg_products.ports.product_repository_port import ProductRepositoryPort
 from baobab_mtg_products.ports.product_workflow_event_recorder_port import (
     ProductWorkflowEventRecorderPort,
@@ -22,6 +28,8 @@ __all__ = [
     "ProductBusinessHistoryQueryPort",
     "CollectionPort",
     "InternalProductIdFactoryPort",
+    "ProductReferenceIdFactoryPort",
+    "ProductReferenceRepositoryPort",
     "ProductRepositoryPort",
     "ProductWorkflowEventRecorderPort",
     "RevealedCardTraceRepositoryPort",

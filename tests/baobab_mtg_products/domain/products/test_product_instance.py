@@ -2,11 +2,11 @@
 
 import pytest
 
-from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.domain.products.serial_number import SerialNumber
@@ -22,6 +22,7 @@ class TestProductInstance:
         """Construit une instance valide avec champs obligatoires uniquement."""
         return ProductInstance(
             internal_id=InternalProductId("p-1"),
+            reference_id=ProductReferenceId("ref-1"),
             product_type=ProductType.PLAY_BOOSTER,
             set_code=MtgSetCode("MH3"),
             status=ProductStatus.REGISTERED,
@@ -32,17 +33,16 @@ class TestProductInstance:
         parent = InternalProductId("display-1")
         instance = ProductInstance(
             internal_id=InternalProductId("p-2"),
+            reference_id=ProductReferenceId("ref-2"),
             product_type=ProductType.DISPLAY,
             set_code=MtgSetCode("FDN"),
             status=ProductStatus.QUALIFIED,
             serial_number=SerialNumber("SER-9"),
-            commercial_barcode=CommercialBarcode("1234567890123"),
             internal_barcode=InternalBarcode("int-42"),
             parent_id=parent,
         )
         assert instance.serial_number is not None
         assert instance.serial_number.value == "SER-9"
-        assert instance.commercial_barcode is not None
         assert instance.internal_barcode is not None
         assert instance.parent_id == parent
 
@@ -55,11 +55,11 @@ class TestProductInstance:
         """Les accesseurs des champs obligatoires exposent les value objects."""
         instance = self._minimal_instance()
         assert instance.internal_id.value == "p-1"
+        assert instance.reference_id.value == "ref-1"
         assert instance.product_type is ProductType.PLAY_BOOSTER
         assert instance.set_code.value == "MH3"
         assert instance.status is ProductStatus.REGISTERED
         assert instance.serial_number is None
-        assert instance.commercial_barcode is None
         assert instance.internal_barcode is None
         assert instance.parent_id is None
 
@@ -69,6 +69,7 @@ class TestProductInstance:
         with pytest.raises(InvalidProductInstanceError) as exc:
             ProductInstance(
                 internal_id=pid,
+                reference_id=ProductReferenceId("ref-x"),
                 product_type=ProductType.BUNDLE,
                 set_code=MtgSetCode("BIG"),
                 status=ProductStatus.SEALED,
@@ -84,6 +85,7 @@ class TestProductInstance:
             product_type=ProductType.COLLECTOR_BOOSTER,
         )
         assert derived.internal_id.value == base.internal_id.value
+        assert derived.reference_id.value == base.reference_id.value
         assert derived.status is ProductStatus.QUALIFIED
         assert derived.product_type is ProductType.COLLECTOR_BOOSTER
         assert derived.set_code.value == base.set_code.value

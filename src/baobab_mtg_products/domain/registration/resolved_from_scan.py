@@ -12,16 +12,23 @@ class ResolvedFromScan:
     """Information issue du catalogue (ou équivalent) après lookup du scan.
 
     Les champs peuvent être partiels : le cas d'usage combinera overrides
-    opérateur et valeurs par défaut pour produire une :class:`ProductInstance`.
+    opérateur et valeurs par défaut pour matérialiser une :class:`ProductReference`
+    puis rattacher une :class:`ProductInstance`.
 
     :param product_type: Type proposé par le référentiel, si trouvé.
     :type product_type: ProductType | None
     :param set_code: Code de set proposé, si trouvé.
     :type set_code: MtgSetCode | None
+    :param display_name: Nom catalogue proposé pour la référence, si disponible.
+    :type display_name: str | None
+    :param image_uri: URI de visuel produit proposée par le catalogue, si disponible.
+    :type image_uri: str | None
     """
 
     product_type: Optional[ProductType]
     set_code: Optional[MtgSetCode]
+    display_name: Optional[str] = None
+    image_uri: Optional[str] = None
 
     @property
     def is_complete(self) -> bool:

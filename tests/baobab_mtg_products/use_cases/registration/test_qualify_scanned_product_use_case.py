@@ -13,6 +13,8 @@ from baobab_mtg_products.domain.integration.product_provenance_for_collection im
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference import ProductReference
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.domain.registration.registration_defaults import RegistrationDefaults
@@ -21,6 +23,9 @@ from baobab_mtg_products.exceptions.registration.invalid_qualification_state_err
 )
 from baobab_mtg_products.exceptions.registration.product_not_found_for_workflow_error import (
     ProductNotFoundForWorkflowError,
+)
+from baobab_mtg_products.exceptions.registration.missing_product_ref_workflow_error import (
+    ProductReferenceNotFoundForWorkflowError,
 )
 from baobab_mtg_products.use_cases.registration.qualify_scanned_product_use_case import (
     QualifyScannedProductUseCase,
@@ -36,10 +41,6 @@ class _RepoStub:
     def find_by_id(self, product_id: InternalProductId) -> Optional[ProductInstance]:
         """Voir :class:`ProductRepositoryPort`."""
         return self.by_id.get(product_id.value)
-
-    def find_by_commercial_barcode(self, barcode: object) -> Optional[ProductInstance]:
-        """Non utilisé ici."""
-        del barcode
 
     def find_by_internal_barcode(self, barcode: object) -> Optional[ProductInstance]:
         """Non utilisé ici."""
@@ -61,6 +62,25 @@ class _RepoStub:
         ]
         kids.sort(key=lambda p: p.internal_id.value)
         return tuple(kids)
+
+
+class _RefRepoStub:
+    """Dépôt références pour la qualification."""
+
+    def __init__(self) -> None:
+        self.by_id: Dict[str, ProductReference] = {}
+
+    def find_by_id(self, reference_id: ProductReferenceId) -> Optional[ProductReference]:
+        """Voir :class:`ProductReferenceRepositoryPort`."""
+        return self.by_id.get(reference_id.value)
+
+    def find_by_commercial_barcode(self, barcode: object) -> Optional[ProductReference]:
+        """Non utilisé."""
+        del barcode
+
+    def save(self, reference: ProductReference) -> None:
+        """Voir :class:`ProductReferenceRepositoryPort`."""
+        self.by_id[reference.reference_id.value] = reference
 
 
 class _EventsStub:
@@ -135,87 +155,149 @@ class _CollectionStub:
 class TestQualifyScannedProductUseCase:
     """Qualification après scan incomplet."""
 
-    def test_qualify_updates_repository_and_events(self) -> None:
-        """Statut « qualified » et événement émis."""
+    def test_qualify_updates_repository_reference_and_events(self) -> None:
+        """Statut « qualified », référence alignée et événement émis."""
         pid = InternalProductId("q1")
+        ref = ProductReference(
+            ProductReferenceId("ref-q1"),
+            name="Pending",
+            product_type=ProductType.OTHER_SEALED,
+            set_code=RegistrationDefaults.placeholder_set_code(),
+            requires_qualification=True,
+        )
         pending = ProductInstance(
-            pid,
-            ProductType.OTHER_SEALED,
-            RegistrationDefaults.placeholder_set_code(),
-            ProductStatus.REGISTERED,
+            internal_id=pid,
+            reference_id=ref.reference_id,
+            product_type=ProductType.OTHER_SEALED,
+            set_code=RegistrationDefaults.placeholder_set_code(),
+            status=ProductStatus.REGISTERED,
         )
         repo = _RepoStub()
         repo.by_id[pid.value] = pending
+        ref_repo = _RefRepoStub()
+        ref_repo.by_id[ref.reference_id.value] = ref
         events = _EventsStub()
         use_case = QualifyScannedProductUseCase(
             pid,
             ProductType.PLAY_BOOSTER,
             MtgSetCode("MH3"),
             repo,
+            ref_repo,
             events,
         )
         updated = use_case.execute()
         assert updated.status is ProductStatus.QUALIFIED
         assert updated.product_type is ProductType.PLAY_BOOSTER
         assert repo.by_id[pid.value].set_code.value == "MH3"
+        saved_ref = ref_repo.by_id[ref.reference_id.value]
+        assert saved_ref.product_type is ProductType.PLAY_BOOSTER
+        assert saved_ref.requires_qualification is False
         assert events.quals == ["q1"]
 
     def test_collection_port_receives_provenance_when_injected(self) -> None:
         """Après qualification, la provenance reflète le produit qualifié."""
         pid = InternalProductId("q2")
+        ref = ProductReference(
+            ProductReferenceId("ref-q2"),
+            name="P",
+            product_type=ProductType.OTHER_SEALED,
+            set_code=RegistrationDefaults.placeholder_set_code(),
+            requires_qualification=True,
+        )
         pending = ProductInstance(
-            pid,
-            ProductType.OTHER_SEALED,
-            RegistrationDefaults.placeholder_set_code(),
-            ProductStatus.REGISTERED,
+            internal_id=pid,
+            reference_id=ref.reference_id,
+            product_type=ProductType.OTHER_SEALED,
+            set_code=RegistrationDefaults.placeholder_set_code(),
+            status=ProductStatus.REGISTERED,
         )
         repo = _RepoStub()
         repo.by_id[pid.value] = pending
+        ref_repo = _RefRepoStub()
+        ref_repo.by_id[ref.reference_id.value] = ref
         collection = _CollectionStub()
         use_case = QualifyScannedProductUseCase(
             pid,
             ProductType.PLAY_BOOSTER,
             MtgSetCode("MH3"),
             repo,
+            ref_repo,
             _EventsStub(),
             collection=collection,
         )
         use_case.execute()
         assert len(collection.provenance) == 1
         assert collection.provenance[0].internal_product_id == "q2"
+        assert collection.provenance[0].product_reference_id == "ref-q2"
         assert collection.provenance[0].product_status_value == "qualified"
 
     def test_missing_product_raises(self) -> None:
         """Identifiant inconnu : erreur explicite."""
         repo = _RepoStub()
+        ref_repo = _RefRepoStub()
         events = _EventsStub()
         use_case = QualifyScannedProductUseCase(
             InternalProductId("ghost"),
             ProductType.BUNDLE,
             MtgSetCode("FDN"),
             repo,
+            ref_repo,
             events,
         )
         with pytest.raises(ProductNotFoundForWorkflowError):
             use_case.execute()
 
+    def test_missing_reference_raises(self) -> None:
+        """Référence absente : erreur dédiée."""
+        pid = InternalProductId("orphan")
+        pending = ProductInstance(
+            internal_id=pid,
+            reference_id=ProductReferenceId("missing-ref"),
+            product_type=ProductType.OTHER_SEALED,
+            set_code=RegistrationDefaults.placeholder_set_code(),
+            status=ProductStatus.REGISTERED,
+        )
+        repo = _RepoStub()
+        repo.by_id[pid.value] = pending
+        use_case = QualifyScannedProductUseCase(
+            pid,
+            ProductType.PLAY_BOOSTER,
+            MtgSetCode("MH3"),
+            repo,
+            _RefRepoStub(),
+            _EventsStub(),
+        )
+        with pytest.raises(ProductReferenceNotFoundForWorkflowError):
+            use_case.execute()
+
     def test_non_registered_raises(self) -> None:
         """Un produit déjà qualifié ne repasse pas par ce flux."""
         pid = InternalProductId("bad")
+        ref = ProductReference(
+            ProductReferenceId("ref-bad"),
+            name="B",
+            product_type=ProductType.BUNDLE,
+            set_code=MtgSetCode("FDN"),
+            requires_qualification=False,
+        )
         already = ProductInstance(
-            pid,
-            ProductType.BUNDLE,
-            MtgSetCode("FDN"),
-            ProductStatus.QUALIFIED,
+            internal_id=pid,
+            reference_id=ref.reference_id,
+            product_type=ProductType.BUNDLE,
+            set_code=MtgSetCode("FDN"),
+            status=ProductStatus.QUALIFIED,
         )
         repo = _RepoStub()
         repo.by_id[pid.value] = already
+        ref_repo = _RefRepoStub()
+        ref_repo.by_id[ref.reference_id.value] = ref
         events = _EventsStub()
         use_case = QualifyScannedProductUseCase(
             pid,
             ProductType.PLAY_BOOSTER,
             MtgSetCode("MH3"),
             repo,
+            ref_repo,
             events,
         )
         with pytest.raises(InvalidQualificationStateError):
