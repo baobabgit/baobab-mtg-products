@@ -3,7 +3,7 @@
 Cette librairie modélise le cycle de vie des produits scellés (enregistrement,
 relations parent/enfant, ouverture, traçabilité) sans couplage HTTP, UI,
 moteur de règles ni deckbuilding. La surface exportée par ce module est
-volontairement documentée par version semver (**2.1** : création d'instance, code de production).
+volontairement documentée par version semver (**2.2** : scans commercial / interne).
 
 **API publique recommandée** — importer depuis ce package :
 
@@ -52,6 +52,11 @@ from baobab_mtg_products.domain.products import (
     SerialNumber,
 )
 from baobab_mtg_products.domain.query import ProductStructuralView, SealedProductSnapshot
+from baobab_mtg_products.domain.registration import (
+    CommercialReferenceResolutionResult,
+    RegistrationScanOutcome,
+    RegistrationScanResult,
+)
 from baobab_mtg_products.exceptions import (
     BaobabMtgProductsException,
     DuplicateInternalBarcodeError,
@@ -86,11 +91,14 @@ from baobab_mtg_products.use_cases.parent_child import (
     AttachChildProductToParentUseCase,
     DetachChildProductFromParentUseCase,
 )
+from baobab_mtg_products.use_cases.registration import (
+    ResolveProductReferenceFromCommercialBarcodeUseCase,
+)
 
 try:
     __version__: str = version("baobab-mtg-products")
 except PackageNotFoundError:
-    __version__ = "2.1.0"
+    __version__ = "2.2.0"
 
 __all__ = [
     "AssignProductionCodeToProductInstanceUseCase",
@@ -98,6 +106,7 @@ __all__ = [
     "BaobabMtgProductsException",
     "CollectionPort",
     "CommercialBarcode",
+    "CommercialReferenceResolutionResult",
     "CreateProductInstanceUseCase",
     "DetachChildProductFromParentUseCase",
     "DuplicateInternalBarcodeError",
@@ -136,6 +145,9 @@ __all__ = [
     "RecordOpeningCardScanUseCase",
     "RegisterRevealedCardFromOpeningUseCase",
     "RevealedCardTrace",
+    "RegistrationScanOutcome",
+    "RegistrationScanResult",
+    "ResolveProductReferenceFromCommercialBarcodeUseCase",
     "SerialNumber",
     "StatisticsPort",
     "__version__",

@@ -84,12 +84,17 @@ class RegistrationFromScanRunner:
         set_code_override: Optional[MtgSetCode] = None,
         product_type_override: Optional[ProductType] = None,
     ) -> RegistrationScanResult:
-        """Enregistre un nouvel exemplaire ou retrouve une instance par scan interne équivalent.
+        """Enregistre un nouvel exemplaire physique après scan commercial.
 
-        Un même code-barres commercial peut désigner une :class:`ProductReference`
-        déjà persistée : une nouvelle :class:`ProductInstance` est alors créée sans
-        fusion ni blocage. Les overrides type/set ne s'appliquent pas dans ce cas :
-        la vérité descriptive reste celle de la référence existante.
+        Le code-barres commercial résout une référence catalogue (persistée ou issue du
+        catalogue) ; il ne désigne **jamais** implicitement un exemplaire unique. Chaque
+        appel matérialise une nouvelle instance lorsque l'utilisateur enregistre un
+        exemplaire, y compris si l'EAN est déjà connu.
+
+        Un même code-barres commercial peut désigner une référence déjà persistée :
+        une nouvelle instance est alors créée sans fusion ni blocage. Les overrides
+        type/set ne s'appliquent pas dans ce cas : la vérité descriptive reste celle de
+        la référence existante.
 
         :param barcode: Code-barres commercial scanné.
         :type barcode: CommercialBarcode
@@ -121,7 +126,11 @@ class RegistrationFromScanRunner:
                 if shared_ref.requires_qualification
                 else RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE
             )
-            return RegistrationScanResult(product, outcome)
+            return RegistrationScanResult(
+                product,
+                outcome,
+                resolved_reference=shared_ref,
+            )
 
         resolved = self._resolution.resolve_commercial(barcode)
         return self._materialize_new_scan(
@@ -141,7 +150,11 @@ class RegistrationFromScanRunner:
         set_code_override: Optional[MtgSetCode] = None,
         product_type_override: Optional[ProductType] = None,
     ) -> RegistrationScanResult:
-        """Enregistre ou retrouve un produit à partir d'un scan interne.
+        """Retrouve une instance par code interne, ou signale l'absence d'exemplaire.
+
+        Le code-barres interne sert de clé directe vers l'exemplaire physique ; s'il
+        n'existe pas en persistance, aucune instance n'est créée implicitement à partir
+        du catalogue.
 
         :param barcode: Code-barres interne scanné.
         :type barcode: InternalBarcode
@@ -151,11 +164,13 @@ class RegistrationFromScanRunner:
         :type set_code_override: MtgSetCode | None
         :param product_type_override: Type imposé par l'opérateur si besoin.
         :type product_type_override: ProductType | None
-        :return: Instance persistée et issue métier du flux.
+        :return: Instance retrouvée, ou ``product is None`` si code interne inconnu.
         :rtype: RegistrationScanResult
         """
+        del serial_number, set_code_override, product_type_override
         existing = self._repository.find_by_internal_barcode(barcode)
         if existing is not None:
+            resolved_ref = self._reference_repository.find_by_id(existing.reference_id)
             self._events.record_scan(
                 existing.internal_id.value,
                 "internal",
@@ -165,15 +180,11 @@ class RegistrationFromScanRunner:
             return RegistrationScanResult(
                 existing,
                 RegistrationScanOutcome.EXISTING_PRODUCT,
+                resolved_reference=resolved_ref,
             )
-        resolved = self._resolution.resolve_internal(barcode)
-        return self._materialize_new_scan(
-            resolved=resolved,
-            commercial_barcode=None,
-            internal_barcode=barcode,
-            serial_number=serial_number,
-            set_code_override=set_code_override,
-            product_type_override=product_type_override,
+        return RegistrationScanResult(
+            None,
+            RegistrationScanOutcome.INTERNAL_BARCODE_UNKNOWN,
         )
 
     def _reference_display_name(
@@ -283,7 +294,11 @@ class RegistrationFromScanRunner:
             if needs_qualification
             else RegistrationScanOutcome.NEW_KNOWN_FROM_CATALOG
         )
-        return RegistrationScanResult(product, outcome)
+        return RegistrationScanResult(
+            product,
+            outcome,
+            resolved_reference=reference,
+        )
 
     def _maybe_publish_provenance(self, instance: ProductInstance) -> None:
         if self._collection is None:

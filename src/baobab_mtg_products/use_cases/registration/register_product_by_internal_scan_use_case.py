@@ -18,6 +18,9 @@ from baobab_mtg_products.use_cases.use_case import UseCase
 class RegisterProductByInternalScanUseCase(UseCase[RegistrationScanResult]):
     """Encapsule un scan interne unique avec overrides optionnels.
 
+    Le code interne retrouve une instance existante ou signale
+    ``INTERNAL_BARCODE_UNKNOWN`` sans création implicite.
+
     :param barcode: Code-barres ou identifiant interne scanné.
     :type barcode: InternalBarcode
     :param runner: Orchestrateur injecté (dépôt, catalogue, ids, événements).

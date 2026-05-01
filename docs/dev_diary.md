@@ -2,6 +2,22 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-05-01 20:30:00 — feature 11_commercial_and_internal_scan_workflow_refactor
+
+### Modifications
+
+- **`RegistrationScanOutcome.INTERNAL_BARCODE_UNKNOWN`**, **`RegistrationScanResult.resolved_reference`** ; refonte **`register_via_internal`** / **`register_via_commercial`** (runner).
+- **`ResolveProductReferenceFromCommercialBarcodeUseCase`**, **`CommercialReferenceResolutionResult`** ; tests scénario deux displays, résolution EAN seule, exports racine.
+- **`CHANGELOG` [2.2.0]**, **`README`**, **`pyproject.toml`**.
+
+### Buts
+
+- Distinguer clairement résolution catalogue (EAN) et identification d’exemplaire (code interne), sans traiter l’EAN comme identifiant physique unique.
+
+### Impact
+
+- **Mineur** SemVer **2.2.0** : tout code qui supposait une matérialisation après scan interne inconnu doit migrer (ex. **`CreateProductInstanceUseCase`** + code interne).
+
 ## 2026-05-01 18:00:00 — feature 10_physical_instance_creation_and_production_code
 
 ### Modifications

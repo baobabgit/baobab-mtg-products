@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "baobab-mtg-products"
-version = "2.1.0"
+version = "2.2.0"
 description = "Librairie métier typée pour les produits scellés Magic: The Gathering — scan, qualification, relations parent-enfant, ouverture, traçabilité carte et ports collection/statistiques."
 readme = "README.md"
 requires-python = ">=3.10"

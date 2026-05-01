@@ -138,7 +138,9 @@ from baobab_mtg_products.use_cases.registration import (
 # #           new_instance_shared_reference (nouvel exemplaire, même référence catalogue)
 ```
 
-Un même **code-barres commercial** peut désigner une **`ProductReference`** déjà persistée : le flux crée alors une **nouvelle** `ProductInstance` sans bloquer sur un doublon commercial (voir `RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE`). Le code-barres commercial et les métadonnées descriptives (nom, visuel) vivent sur **`ProductReference`** ; l’instance porte `reference_id` et une copie dénormalisée de type / set pour les règles métier existantes.
+Un même **code-barres commercial** peut désigner une **`ProductReference`** déjà persistée : le flux crée alors une **nouvelle** `ProductInstance` sans bloquer sur un doublon commercial (voir `RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE`). Le code-barres commercial et les métadonnées descriptives (nom, visuel) vivent sur **`ProductReference`** ; l’instance porte `reference_id` et une copie dénormalisée de type / set pour les règles métier existantes. Le résultat d’enregistrement expose **`resolved_reference`** (référence alignée) ; l’EAN **ne** correspond **jamais** à un exemplaire unique implicite. Pour une **résolution référence seule** (sans persister d’instance), utiliser **`ResolveProductReferenceFromCommercialBarcodeUseCase`** avec **`CommercialReferenceResolutionResult`**.
+
+Un **scan interne** retrouve une **`ProductInstance`** exacte par code interne ; s’il est inconnu, l’issue est **`INTERNAL_BARCODE_UNKNOWN`** avec `product is None` (aucune création implicite via le catalogue).
 
 ### Création explicite d’instance et code de production
 

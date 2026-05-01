@@ -340,6 +340,7 @@ class TestRegistrationFromScanRunner:
         assert result.outcome is RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE
         assert result.product.internal_id.value == "new-a"
         assert result.product.reference_id.value == "ref-shared"
+        assert result.resolved_reference is shared_ref
         assert events.regs == ["new-a"]
         assert events.scans == [("new-a", "commercial", "12345678")]
 
@@ -448,11 +449,12 @@ class TestRegistrationFromScanRunner:
         )
         result = runner.register_via_internal(internal)
         assert result.outcome is RegistrationScanOutcome.EXISTING_PRODUCT
+        assert result.resolved_reference is ref
         assert not events.regs
         assert events.scans == [("int-old", "internal", "known-tag")]
 
-    def test_internal_scan_persists_internal_barcode(self) -> None:
-        """Scan interne : code interne renseigné sur l'instance."""
+    def test_internal_unknown_barcode_does_not_materialize(self) -> None:
+        """Code interne inconnu : pas d'instance ni d'enregistrement implicite."""
         repo = _FakeRepo()
         ref_repo = _FakeRefRepo()
         events = _FakeEvents()
@@ -461,10 +463,42 @@ class TestRegistrationFromScanRunner:
             ResolvedFromScan(ProductType.PLAY_BOOSTER, MtgSetCode("MH1")),
         )
         runner = _runner(repo, ref_repo, resolution, ["i1"], ["r5"], events)
-        internal = InternalBarcode("tag-1")
+        internal = InternalBarcode("tag-unknown")
         result = runner.register_via_internal(internal)
-        assert result.product.internal_barcode == internal
-        assert result.outcome is RegistrationScanOutcome.NEW_KNOWN_FROM_CATALOG
+        assert result.product is None
+        assert result.outcome is RegistrationScanOutcome.INTERNAL_BARCODE_UNKNOWN
+        assert result.resolved_reference is None
+        assert not events.regs
+        assert not events.scans
+        assert len(repo.by_id) == 0
+
+    def test_two_commercial_scans_same_ean_two_instances(self) -> None:
+        """Scénario deux displays : deux scans EAN identiques → deux instances distinctes."""
+        repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
+        events = _FakeEvents()
+        shared_ref = ProductReference(
+            ProductReferenceId("ref-display"),
+            name="Display MH3",
+            product_type=ProductType.DISPLAY,
+            set_code=MtgSetCode("MH3"),
+            requires_qualification=False,
+            commercial_barcode=CommercialBarcode("4006381333930"),
+        )
+        ref_repo.save(shared_ref)
+        resolution = _FakeResolution(
+            ResolvedFromScan(None, None),
+            ResolvedFromScan(None, None),
+        )
+        runner = _runner(repo, ref_repo, resolution, ["disp-a", "disp-b"], [], events)
+        r1 = runner.register_via_commercial(CommercialBarcode("4006381333930"))
+        r2 = runner.register_via_commercial(CommercialBarcode("4006381333930"))
+        assert r1.product.internal_id.value != r2.product.internal_id.value
+        assert r1.product.reference_id == r2.product.reference_id == shared_ref.reference_id
+        assert r1.resolved_reference is r2.resolved_reference is shared_ref
+        rows = repo.list_by_reference_id(shared_ref.reference_id)
+        assert len(rows) == 2
+        assert events.regs == ["disp-a", "disp-b"]
 
     def test_both_overrides_produce_qualified_without_catalog(self) -> None:
         """Overrides opérateur complets : pas d'attente de qualification."""

@@ -18,6 +18,11 @@ from baobab_mtg_products.use_cases.use_case import UseCase
 class RegisterProductByCommercialScanUseCase(UseCase[RegistrationScanResult]):
     """Encapsule un scan commercial unique avec overrides optionnels.
 
+    L'EAN résout une référence catalogue ; chaque enregistrement matérialise une
+    nouvelle instance physique, y compris si l'EAN est déjà connu. Pour une résolution
+    référence sans persister d'instance, utiliser
+    ``ResolveProductReferenceFromCommercialBarcodeUseCase``.
+
     :param barcode: Code-barres scanné sur le conditionnement.
     :type barcode: CommercialBarcode
     :param runner: Orchestrateur injecté (dépôt, catalogue, ids, événements).
