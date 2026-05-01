@@ -22,6 +22,7 @@ from baobab_mtg_products.domain.products.product_instance import ProductInstance
 from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
+from baobab_mtg_products.domain.products.production_code import ProductionCode
 from baobab_mtg_products.exceptions.opening.duplicate_revealed_card_trace_error import (
     DuplicateRevealedCardTraceError,
 )
@@ -56,6 +57,28 @@ class _Repo:
     def save(self, product: ProductInstance) -> None:
         """Voir :class:`ProductRepositoryPort`."""
         self.by_id[product.internal_id.value] = product
+
+    def list_by_reference_id(
+        self,
+        reference_id: ProductReferenceId,
+    ) -> tuple[ProductInstance, ...]:
+        """Voir :class:`ProductRepositoryPort`."""
+        rows = [p for p in self.by_id.values() if p.reference_id.value == reference_id.value]
+        rows.sort(key=lambda p: p.internal_id.value)
+        return tuple(rows)
+
+    def list_by_production_code(
+        self,
+        code: ProductionCode,
+    ) -> tuple[ProductInstance, ...]:
+        """Voir :class:`ProductRepositoryPort`."""
+        rows = [
+            p
+            for p in self.by_id.values()
+            if p.production_code is not None and p.production_code.value == code.value
+        ]
+        rows.sort(key=lambda p: p.internal_id.value)
+        return tuple(rows)
 
     def list_direct_children_of_parent(
         self,
@@ -147,6 +170,14 @@ class _Events:
     def record_opening_card_scan(self, product_id: str, scan_payload: str) -> None:
         """Non utilisé."""
         del product_id, scan_payload
+
+    def record_product_instance_created(self, product_id: str, reference_id: str) -> None:
+        """Non utilisé."""
+        del product_id, reference_id
+
+    def record_production_code_assigned(self, product_id: str, production_code: str) -> None:
+        """Non utilisé."""
+        del product_id, production_code
 
 
 class _StatisticsStub:

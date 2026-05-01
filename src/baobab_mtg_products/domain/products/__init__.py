@@ -9,6 +9,7 @@ from baobab_mtg_products.domain.products.product_reference import ProductReferen
 from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
 from baobab_mtg_products.domain.products.product_type import ProductType
+from baobab_mtg_products.domain.products.production_code import ProductionCode
 from baobab_mtg_products.domain.products.relationships import (
     ParentChildRelationshipRules,
     ProductAncestorChain,
@@ -30,6 +31,7 @@ __all__ = [
     "ProductRelationship",
     "ProductRelationshipKind",
     "ProductStatus",
+    "ProductionCode",
     "ProductType",
     "SerialNumber",
 ]

@@ -5,6 +5,8 @@ from typing import Optional, Protocol
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.internal_product_id import InternalProductId
 from baobab_mtg_products.domain.products.product_instance import ProductInstance
+from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
+from baobab_mtg_products.domain.products.production_code import ProductionCode
 
 
 class ProductRepositoryPort(Protocol):
@@ -30,6 +32,37 @@ class ProductRepositoryPort(Protocol):
         :type barcode: InternalBarcode
         :return: Instance si trouvée, sinon ``None``.
         :rtype: ProductInstance | None
+        """
+        ...
+
+    def list_by_reference_id(
+        self,
+        reference_id: ProductReferenceId,
+    ) -> tuple[ProductInstance, ...]:
+        """Retourne toutes les instances rattachées à une référence catalogue.
+
+        L'ordre doit être stable (ex. tri par identifiant interne).
+
+        :param reference_id: Référence catalogue ciblée.
+        :type reference_id: ProductReferenceId
+        :return: Séquence possiblement vide, jamais ``None`` pour masquer l'absence.
+        :rtype: tuple[ProductInstance, ...]
+        """
+        ...
+
+    def list_by_production_code(
+        self,
+        code: ProductionCode,
+    ) -> tuple[ProductInstance, ...]:
+        """Retourne toutes les instances portant ce code de production.
+
+        Le code de production **n'est pas unique** : la séquence peut contenir
+        plusieurs éléments. L'ordre doit être stable.
+
+        :param code: Code de lot recherché.
+        :type code: ProductionCode
+        :return: Zéro, une ou plusieurs instances (jamais une ambiguïté ``Optional``).
+        :rtype: tuple[ProductInstance, ...]
         """
         ...
 

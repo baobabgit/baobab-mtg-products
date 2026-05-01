@@ -140,6 +140,10 @@ from baobab_mtg_products.use_cases.registration import (
 
 Un même **code-barres commercial** peut désigner une **`ProductReference`** déjà persistée : le flux crée alors une **nouvelle** `ProductInstance` sans bloquer sur un doublon commercial (voir `RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE`). Le code-barres commercial et les métadonnées descriptives (nom, visuel) vivent sur **`ProductReference`** ; l’instance porte `reference_id` et une copie dénormalisée de type / set pour les règles métier existantes.
 
+### Création explicite d’instance et code de production
+
+En dehors du scan, une application peut matérialiser un exemplaire avec **`CreateProductInstanceUseCase`** (référence catalogue obligatoire, **`ProductionCode`** optionnel et **non unique**, code-barres interne optionnel mais **unique** dans le dépôt). Le **`SerialNumber`** reste un VO distinct (souvent pensé comme piste qualité unitaire) ; il ne doit pas être confondu avec le lot **`ProductionCode`**. Une saisie différée du lot utilise **`AssignProductionCodeToProductInstanceUseCase`**. Les dépôts exposent **`list_by_reference_id`** et **`list_by_production_code`** : la recherche par code de production retourne **toujours** une séquence (plusieurs résultats possibles), jamais une hypothèse d’unicité implicite.
+
 Les adaptateurs **collection** et **statistiques** implémentent `CollectionPort` et `StatisticsPort` ; les cas d’usage concernés acceptent une injection **optionnelle** et publient des DTO stables après succès.
 
 ### Relations parent / enfant
@@ -194,7 +198,7 @@ from baobab_mtg_products import (
 # # struct.direct_children, struct.child_references
 ```
 
-Les dépôts doivent implémenter `list_direct_children_of_parent` sur `ProductRepositoryPort` et les méthodes du `ProductReferenceRepositoryPort` pour résoudre les références associées aux instances.
+Les dépôts doivent implémenter `list_direct_children_of_parent`, `list_by_reference_id` et `list_by_production_code` sur `ProductRepositoryPort`, ainsi que les méthodes du `ProductReferenceRepositoryPort` pour résoudre les références associées aux instances.
 
 ### Historique métier
 

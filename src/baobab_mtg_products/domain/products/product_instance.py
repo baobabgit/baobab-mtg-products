@@ -10,6 +10,7 @@ from baobab_mtg_products.domain.products.internal_product_id import InternalProd
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
 from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_status import ProductStatus
+from baobab_mtg_products.domain.products.production_code import ProductionCode
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.domain.products.serial_number import SerialNumber
 from baobab_mtg_products.exceptions.product.invalid_product_instance_error import (
@@ -42,8 +43,11 @@ class ProductInstance(DomainEntity):
     :type set_code: MtgSetCode
     :param status: Statut métier courant.
     :type status: ProductStatus
-    :param serial_number: Numéro de série fabricant, si connu.
+    :param serial_number: Numéro de série fabricant (piste qualité unitaire), si connu.
     :type serial_number: SerialNumber | None
+    :param production_code: Code de lot / production, **non unique** ; plusieurs instances
+        peuvent partager la même valeur.
+    :type production_code: ProductionCode | None
     :param internal_barcode: Code-barres ou identifiant interne alternatif de l'exemplaire.
     :type internal_barcode: InternalBarcode | None
     :param parent_id: Identifiant du produit parent (display, bundle, etc.).
@@ -59,6 +63,7 @@ class ProductInstance(DomainEntity):
         set_code: MtgSetCode,
         status: ProductStatus,
         serial_number: Optional[SerialNumber] = None,
+        production_code: Optional[ProductionCode] = None,
         internal_barcode: Optional[InternalBarcode] = None,
         parent_id: Optional[InternalProductId] = None,
     ) -> None:
@@ -73,6 +78,7 @@ class ProductInstance(DomainEntity):
         self._set_code: MtgSetCode = set_code
         self._status: ProductStatus = status
         self._serial_number: Optional[SerialNumber] = serial_number
+        self._production_code: Optional[ProductionCode] = production_code
         self._internal_barcode: Optional[InternalBarcode] = internal_barcode
         self._parent_id: Optional[InternalProductId] = parent_id
 
@@ -103,8 +109,13 @@ class ProductInstance(DomainEntity):
 
     @property
     def serial_number(self) -> Optional[SerialNumber]:
-        """Numéro de série, si présent."""
+        """Numéro de série fabricant, si présent."""
         return self._serial_number
+
+    @property
+    def production_code(self) -> Optional[ProductionCode]:
+        """Code de production ou de lot, si renseigné (jamais unique métier)."""
+        return self._production_code
 
     @property
     def internal_barcode(self) -> Optional[InternalBarcode]:
@@ -124,7 +135,7 @@ class ProductInstance(DomainEntity):
         """
         return self._internal_id.value
 
-    def derived_with(
+    def derived_with(  # pylint: disable=too-many-locals
         self,
         *,
         reference_id: ProductReferenceId | object = _DERIVED_FIELD_UNSET,
@@ -132,6 +143,7 @@ class ProductInstance(DomainEntity):
         set_code: MtgSetCode | object = _DERIVED_FIELD_UNSET,
         status: ProductStatus | object = _DERIVED_FIELD_UNSET,
         serial_number: Optional[SerialNumber] | object = _DERIVED_FIELD_UNSET,
+        production_code: Optional[ProductionCode] | object = _DERIVED_FIELD_UNSET,
         internal_barcode: Optional[InternalBarcode] | object = _DERIVED_FIELD_UNSET,
         parent_id: Optional[InternalProductId] | object = _DERIVED_FIELD_UNSET,
     ) -> ProductInstance:
@@ -146,6 +158,7 @@ class ProductInstance(DomainEntity):
         :param set_code: Nouveau code de set, si fourni.
         :param status: Nouveau statut, si fourni.
         :param serial_number: Nouveau numéro de série (y compris ``None`` explicite).
+        :param production_code: Nouveau code de production (y compris ``None`` explicite).
         :param internal_barcode: Nouveau code-barres interne.
         :param parent_id: Nouvelle référence parente.
         :return: Nouvelle :class:`ProductInstance` avec les champs fusionnés.
@@ -172,6 +185,11 @@ class ProductInstance(DomainEntity):
             if serial_number is _DERIVED_FIELD_UNSET
             else cast(Optional[SerialNumber], serial_number)
         )
+        next_prod = (
+            self._production_code
+            if production_code is _DERIVED_FIELD_UNSET
+            else cast(Optional[ProductionCode], production_code)
+        )
         next_internal = (
             self._internal_barcode
             if internal_barcode is _DERIVED_FIELD_UNSET
@@ -189,6 +207,7 @@ class ProductInstance(DomainEntity):
             set_code=next_set,
             status=next_status,
             serial_number=next_serial,
+            production_code=next_prod,
             internal_barcode=next_internal,
             parent_id=next_parent,
         )

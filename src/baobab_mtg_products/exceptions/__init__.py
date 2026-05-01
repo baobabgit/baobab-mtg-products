@@ -4,12 +4,14 @@ from baobab_mtg_products.exceptions.baobab_mtg_products_exception import (
     BaobabMtgProductsException,
 )
 from baobab_mtg_products.exceptions.product import (
+    DuplicateInternalBarcodeError,
     InvalidCommercialBarcodeError,
     InvalidInternalBarcodeError,
     InvalidProductIdentifierError,
     InvalidProductInstanceError,
     InvalidProductReferenceError,
     InvalidProductReferenceIdError,
+    InvalidProductionCodeError,
     InvalidSerialNumberError,
     InvalidSetCodeError,
 )
@@ -52,6 +54,7 @@ __all__ = [
     "AmbiguousBarcodeResolutionError",
     "BaobabMtgProductsException",
     "ChildProductNotAttachedError",
+    "DuplicateInternalBarcodeError",
     "DuplicateRevealedCardTraceError",
     "CircularProductParentageError",
     "DetachParentMismatchError",
@@ -68,6 +71,7 @@ __all__ = [
     "InvalidProductInstanceError",
     "InvalidProductReferenceError",
     "InvalidProductReferenceIdError",
+    "InvalidProductionCodeError",
     "InvalidQualificationStateError",
     "InvalidSerialNumberError",
     "InvalidSetCodeError",

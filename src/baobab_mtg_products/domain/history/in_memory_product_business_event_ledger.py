@@ -204,6 +204,32 @@ class InMemoryProductBusinessEventLedger:
             payload=ProductBusinessEventPayload(scan_payload=scan_payload),
         )
 
+    def record_product_instance_created(self, product_id: str, reference_id: str) -> None:
+        """Voir :class:`ProductWorkflowEventRecorderPort`."""
+        if product_id in self._registered_ids:
+            raise ProductHistoryCoherenceError(
+                "Création d'instance déjà journalisée pour cet identifiant.",
+            )
+        self._append(
+            principal_product_id=product_id,
+            kind=ProductBusinessEventKind.INSTANCE_CREATED,
+            payload=ProductBusinessEventPayload(reference_id=reference_id),
+        )
+        self._registered_ids.add(product_id)
+        self._known_product_ids.add(product_id)
+
+    def record_production_code_assigned(self, product_id: str, production_code: str) -> None:
+        """Voir :class:`ProductWorkflowEventRecorderPort`."""
+        if product_id not in self._known_product_ids:
+            raise ProductHistoryCoherenceError(
+                "Association de code de production refusée : instance inconnue du journal.",
+            )
+        self._append(
+            principal_product_id=product_id,
+            kind=ProductBusinessEventKind.PRODUCTION_CODE_ASSIGNED,
+            payload=ProductBusinessEventPayload(production_code_value=production_code),
+        )
+
     def _append(
         self,
         *,
