@@ -53,7 +53,7 @@ baobab_mtg_products = ["py.typed"]
 [tool.pytest.ini_options]
 minversion = "7.0"
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 addopts = "-ra -q"
 
 [tool.coverage.run]

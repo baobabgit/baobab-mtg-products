@@ -172,6 +172,17 @@ from baobab_mtg_products.domain.products import ProductRelationship
 
 Sortir les sous-produits physiques d’une **display**, d’un **bundle**, d’un **prerelease kit**, etc. sans passer par l’ouverture pour cartes : **`DeconditionContainerUseCase`** avec **`DeconditionContainerCommand`** et une liste de **`DeconditionChildSpecification`** (création depuis une **`ProductReferenceId`** ou rattachement d’une instance orpheline existante). Le contenant passe en **`ProductStatus.DECONDITIONED`** ; le journal enregistre **`CONTAINER_DECONDITIONED`** une fois par opération. Les kinds **`ProductRelationshipKind`** existants (ex. **`DISPLAY_CONTAINS_BOOSTER`**, **`BUNDLE_CONTAINS_SUBPRODUCT`**) contrôlent la compatibilité des types. Voir **`docs/features/12_container_deconditioning_workflow.md`**.
 
+```python
+from baobab_mtg_products import (
+    DeconditionChildSpecification,
+    DeconditionContainerCommand,
+    DeconditionContainerUseCase,
+)
+
+# cmd = DeconditionContainerCommand(container_internal_id, tuple(specs))
+# result = DeconditionContainerUseCase(cmd, repo, ref_repo, id_factory, events).execute()
+```
+
 ### Ouverture et cartes révélées
 
 ```python
@@ -206,7 +217,7 @@ from baobab_mtg_products import (
 # # struct.direct_children, struct.child_references
 ```
 
-Les dépôts doivent implémenter `list_direct_children_of_parent`, `list_by_reference_id` et `list_by_production_code` sur `ProductRepositoryPort`, ainsi que les méthodes du `ProductReferenceRepositoryPort` pour résoudre les références associées aux instances.
+Les dépôts doivent implémenter `list_direct_children_of_parent`, `list_by_reference_id` et `list_by_production_code` sur `ProductRepositoryPort`, ainsi que les méthodes du `ProductReferenceRepositoryPort` pour résoudre les références associées aux instances. Le dépôt source fournit des doubles mémoire conformes à ces ports dans `tests/support/in_memory_product_repositories.py` (usage tests / exemple, hors package distribué).
 
 ### Historique métier
 

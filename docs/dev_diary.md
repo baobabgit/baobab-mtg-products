@@ -2,6 +2,35 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-05-02 18:30:00 — feature 13_persistence_contracts_database_insertion (tests & doc)
+
+### Modifications
+
+- **`tests/support/in_memory_product_repositories.py`** (doubles conformes aux ports) ; tests **`test_product_reference_repository_port`**, **`test_product_repository_port`**, **`test_persistence_memory_workflows`** ; **`pyproject.toml`** `pythonpath` pytest **`["src", "."]`**.
+- Docstrings ports **`ProductReferenceRepositoryPort`**, **`ProductRepositoryPort`** ; **`docs/002_product_reference_instance_persistence_guidance.md`**, **`docs/features/13_...`**, **`docs/test_plans/13_...`** ; **`CHANGELOG`** section **[Unreleased]**.
+
+### Buts
+
+- Verrouiller les contrats insert/relecture (référence vs instance, **`ProductionCode`** non unique, **`parent_id`**, absence de lookup EAN côté instance) sans dépendance runtime DB.
+
+### Impact
+
+- Surface publique packages inchangée ; **README** non modifié (comportement attendu inchangé pour le consommateur hors tests).
+
+## 2026-05-02 14:00:00 — docs 12_container_deconditioning_workflow (writer)
+
+### Modifications
+
+- **`README.md`** : bloc d’imports minimal (**`DeconditionChildSpecification`**, **`DeconditionContainerCommand`**, **`DeconditionContainerUseCase`**) sous la section déconditionnement.
+
+### Buts
+
+- Documentation consommateur alignée sur la surface exportée racine : distinction déconditionnement / ouverture, commande et specs.
+
+### Impact
+
+- Aucun changement de code ni de **`CHANGELOG.md`**.
+
 ## 2026-05-02 12:00:00 — feature 12_container_deconditioning_workflow
 
 ### Modifications

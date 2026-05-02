@@ -8,7 +8,11 @@ from baobab_mtg_products.domain.products.product_reference_id import ProductRefe
 
 
 class ProductReferenceRepositoryPort(Protocol):
-    """Contrat minimal pour stocker et retrouver des :class:`ProductReference`."""
+    """Contrat minimal pour stocker et retrouver des :class:`ProductReference`.
+
+    Le code-barres commercial (EAN) est porté par l’agrégat référence, pas par les instances
+    physiques ; une recherche par EAN au niveau exemplaire relève d’un anti-pattern pour ce domaine.
+    """
 
     def find_by_id(self, reference_id: ProductReferenceId) -> Optional[ProductReference]:
         """Retourne la référence par identifiant stable.
@@ -25,6 +29,9 @@ class ProductReferenceRepositoryPort(Protocol):
         barcode: CommercialBarcode,
     ) -> Optional[ProductReference]:
         """Retourne la référence déjà enregistrée pour ce code-barres commercial.
+
+        Dans une implémentation correcte (index unique côté persistance), au plus une référence
+        correspond à un EAN donné ; le contrat reste ``Optional`` pour l’absence de ligne.
 
         :param barcode: Code-barres commercial normalisé.
         :type barcode: CommercialBarcode

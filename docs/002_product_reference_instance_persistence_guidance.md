@@ -73,18 +73,22 @@ Ces deux actions ne doivent pas être modélisées par le même cas d’usage.
 
 ## 5. Ports de persistance
 
-La librairie ne doit pas imposer SQLite, PostgreSQL, SQLAlchemy ou Django ORM.
+La librairie **ne fournit pas** d’adaptateur SQL ou MongoDB : uniquement des **protocoles** (`Protocol`) et la logique métier. L’application consommatrice implémente la persistance (SQLite, PostgreSQL, etc.) derrière ces ports.
 
-Elle doit fournir des ports, et l’application doit brancher son adaptateur concret.
+Ports catalogue / exemplaires (v2.x) :
 
-Exemples de ports attendus :
+- `ProductReferenceRepositoryPort` — agrégats catalogue ; le **code-barres commercial** y est porté ; recherche par EAN au niveau **référence** uniquement ;
+- `ProductRepositoryPort` — **instances physiques** uniquement (nom historique conservé ; pas de renommage en `ProductInstanceRepositoryPort` dans la série 2.x) ; **pas** de `find_by_commercial_barcode` sur ce port.
 
-- `ProductReferenceRepositoryPort` ;
-- `ProductInstanceRepositoryPort` ;
-- `ProductRelationshipRepositoryPort` ;
+Relations parent / enfant entre exemplaires : champ `parent_id` sur `ProductInstance` + méthodes du dépôt instance (`list_direct_children_of_parent`). Pas de port dédié « relations » tant qu’aucune décision d’architecture n’extrait cette responsabilité.
+
+Autres ports déjà présents dans le projet :
+
 - `ProductWorkflowEventRecorderPort` ;
 - `ProductBusinessHistoryQueryPort` ;
 - `RevealedCardTraceRepositoryPort`.
+
+Doubles mémoire de test conformes aux deux premiers ports : `tests/support/in_memory_product_repositories.py`.
 
 ## 6. Schéma SQL indicatif
 
