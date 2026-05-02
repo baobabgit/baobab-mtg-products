@@ -34,6 +34,12 @@ from baobab_mtg_products.exceptions.query import (
     ProductNotFoundForQueryError,
     ProductReferenceNotFoundForQueryError,
 )
+from baobab_mtg_products.exceptions.deconditioning import (
+    ContainerAlreadyDeconditionedError,
+    DeconditionContainerEmptyChildrenError,
+    InvalidDeconditionChildSpecificationError,
+    ProductNotDeconditionableContainerError,
+)
 from baobab_mtg_products.exceptions.registration import (
     AmbiguousBarcodeResolutionError,
     InvalidQualificationStateError,
@@ -54,10 +60,13 @@ __all__ = [
     "AmbiguousBarcodeResolutionError",
     "BaobabMtgProductsException",
     "ChildProductNotAttachedError",
+    "ContainerAlreadyDeconditionedError",
     "DuplicateInternalBarcodeError",
     "DuplicateRevealedCardTraceError",
     "CircularProductParentageError",
+    "DeconditionContainerEmptyChildrenError",
     "DetachParentMismatchError",
+    "InvalidDeconditionChildSpecificationError",
     "IncompleteProductHierarchyError",
     "InvalidIntegrationPayloadError",
     "IncompatibleParentChildTypesError",
@@ -77,6 +86,7 @@ __all__ = [
     "InvalidSetCodeError",
     "MissingReferencedParentProductError",
     "ProductAlreadyHasParentError",
+    "ProductNotDeconditionableContainerError",
     "ProductAlreadyOpenedError",
     "ProductHistoryCoherenceError",
     "ProductNotFoundForQueryError",

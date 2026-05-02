@@ -2,6 +2,22 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-05-02 12:00:00 — feature 12_container_deconditioning_workflow
+
+### Modifications
+
+- **`DeconditionContainerUseCase`**, commandes et specs dans **`domain.deconditioning`** ; politique **`DeconditionableContainerPolicy`** ; statut **`DECONDITIONED`** ; événement **`CONTAINER_DECONDITIONED`** + **`record_container_deconditioned`** sur le port workflow et le ledger mémoire.
+- Exceptions dédiées sous **`exceptions/deconditioning/`** ; réexports **`__init__.py`** racine ; tests (use case, commande, policy, timeline, vue structurelle) ; fakes de tests enrichis.
+- **`CHANGELOG` [2.3.0]**, **`README`**, **`docs/features/12_container_deconditioning_workflow.md`** (scénario display → 15 boosters), **`pyproject.toml`**.
+
+### Buts
+
+- Séparer **déconditionnement** (contenant → exemplaires enfants) et **ouverture** (booster → cartes), sans traçabilité carte sur le premier flux.
+
+### Impact
+
+- **Mineur** SemVer **2.3.0** : les implémentations de **`ProductWorkflowEventRecorderPort`** doivent fournir **`record_container_deconditioned`**.
+
 ## 2026-05-01 22:00:00 — correction QA feature 11 (scan commercial / interne)
 
 ### Modifications

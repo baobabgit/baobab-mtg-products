@@ -205,6 +205,15 @@ class _FakeEvents:
         """Voir :class:`ProductWorkflowEventRecorderPort`."""
         del product_id, production_code
 
+    def record_container_deconditioned(
+        self,
+        container_id: str,
+        *,
+        children_processed: int,
+    ) -> None:
+        """Voir :class:`ProductWorkflowEventRecorderPort`."""
+        del container_id, children_processed
+
 
 class TestRegistrationFromScanRunnerContractNegatives:
     """Contrats : scan commercial sans résolution instance par code interne."""

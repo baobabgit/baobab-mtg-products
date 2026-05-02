@@ -137,6 +137,15 @@ class _Events:
         """Voir :class:`ProductWorkflowEventRecorderPort`."""
         self.assigned.append((product_id, production_code))
 
+    def record_container_deconditioned(
+        self,
+        container_id: str,
+        *,
+        children_processed: int,
+    ) -> None:
+        """Voir :class:`ProductWorkflowEventRecorderPort`."""
+        del container_id, children_processed
+
 
 class TestAssignProductionCodeToProductInstanceUseCase:
     """Saisie différée du code de lot et journalisation."""

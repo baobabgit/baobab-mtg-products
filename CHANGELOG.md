@@ -4,6 +4,25 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.3.0] - 2026-05-02
+
+### Summary
+
+Version **mineure** : **déconditionnement de contenants** (display, bundle, kit prerelease, etc.) — distinct de l’**ouverture** d’un booster pour révélation de cartes.
+
+### Added
+
+- **`ProductStatus.DECONDITIONED`** ; **`ProductBusinessEventKind.CONTAINER_DECONDITIONED`** ; charge **`deconditioned_children_count`** sur **`ProductBusinessEventPayload`**.
+- Port **`ProductWorkflowEventRecorderPort.record_container_deconditioned`** ; implémentation **`InMemoryProductBusinessEventLedger`**.
+- Domaine **`domain.deconditioning`** : **`DeconditionableContainerPolicy`**, **`DeconditionChildSpecification`**, **`DeconditionContainerCommand`**, **`DeconditionContainerResult`**.
+- Cas d’usage **`DeconditionContainerUseCase`** (création d’enfants via **`CreateProductInstanceUseCase`** + rattachement via **`AttachChildProductToParentUseCase`** ; pas d’événements d’ouverture / carte).
+- Exceptions **`exceptions.deconditioning`** : **`ProductNotDeconditionableContainerError`**, **`ContainerAlreadyDeconditionedError`**, **`DeconditionContainerEmptyChildrenError`**, **`InvalidDeconditionChildSpecificationError`**.
+- Réexports racine du package ; tests unitaires et de workflow (vue structurelle, timeline).
+
+### Changed
+
+- Les implémentations du port workflow dans les tests incluent **`record_container_deconditioned`** (spy / no-op).
+
 ## [2.2.0] - 2026-05-01
 
 ### Summary

@@ -230,6 +230,25 @@ class InMemoryProductBusinessEventLedger:
             payload=ProductBusinessEventPayload(production_code_value=production_code),
         )
 
+    def record_container_deconditioned(
+        self,
+        container_id: str,
+        *,
+        children_processed: int,
+    ) -> None:
+        """Voir :class:`ProductWorkflowEventRecorderPort`."""
+        if container_id not in self._known_product_ids:
+            raise ProductHistoryCoherenceError(
+                "Déconditionnement refusé : contenant inconnu du journal.",
+            )
+        self._append(
+            principal_product_id=container_id,
+            kind=ProductBusinessEventKind.CONTAINER_DECONDITIONED,
+            payload=ProductBusinessEventPayload(
+                deconditioned_children_count=children_processed,
+            ),
+        )
+
     def _append(
         self,
         *,

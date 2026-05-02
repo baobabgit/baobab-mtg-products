@@ -129,3 +129,20 @@ class ProductWorkflowEventRecorderPort(Protocol):
         :type production_code: str
         """
         ...
+
+    def record_container_deconditioned(
+        self,
+        container_id: str,
+        *,
+        children_processed: int,
+    ) -> None:
+        """Enregistre qu'un contenant physique a été déconditionné (sortie des sous-produits).
+
+        Distinct de l'ouverture d'un booster pour révélation de cartes.
+
+        :param container_id: Identifiant interne du contenant déconditionné.
+        :type container_id: str
+        :param children_processed: Nombre d'enfants créés ou rattachés lors de l'opération.
+        :type children_processed: int
+        """
+        ...
