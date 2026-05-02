@@ -28,6 +28,8 @@ class ProductBusinessEventPayload:
     :type reference_id: str | None
     :param production_code_value: Code de production associé (événement d'assignation).
     :type production_code_value: str | None
+    :param deconditioned_children_count: Nombre d'enfants traités lors du déconditionnement.
+    :type deconditioned_children_count: int | None
     """
 
     scan_channel: Optional[str] = None
@@ -40,3 +42,4 @@ class ProductBusinessEventPayload:
     scan_payload: Optional[str] = None
     reference_id: Optional[str] = None
     production_code_value: Optional[str] = None
+    deconditioned_children_count: Optional[int] = None

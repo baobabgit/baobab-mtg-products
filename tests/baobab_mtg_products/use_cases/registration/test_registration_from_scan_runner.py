@@ -236,6 +236,15 @@ class _FakeEvents:
         """Voir :class:`ProductWorkflowEventRecorderPort`."""
         del product_id, production_code
 
+    def record_container_deconditioned(
+        self,
+        container_id: str,
+        *,
+        children_processed: int,
+    ) -> None:
+        """Voir :class:`ProductWorkflowEventRecorderPort`."""
+        del container_id, children_processed
+
 
 class _FakeCollection:
     """Double du port collection."""

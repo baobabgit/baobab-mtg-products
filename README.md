@@ -168,6 +168,10 @@ from baobab_mtg_products.domain.products import ProductRelationship
 # DetachChildProductFromParentUseCase(child_id, repo, events).execute()
 ```
 
+### Déconditionnement de contenants
+
+Sortir les sous-produits physiques d’une **display**, d’un **bundle**, d’un **prerelease kit**, etc. sans passer par l’ouverture pour cartes : **`DeconditionContainerUseCase`** avec **`DeconditionContainerCommand`** et une liste de **`DeconditionChildSpecification`** (création depuis une **`ProductReferenceId`** ou rattachement d’une instance orpheline existante). Le contenant passe en **`ProductStatus.DECONDITIONED`** ; le journal enregistre **`CONTAINER_DECONDITIONED`** une fois par opération. Les kinds **`ProductRelationshipKind`** existants (ex. **`DISPLAY_CONTAINS_BOOSTER`**, **`BUNDLE_CONTAINS_SUBPRODUCT`**) contrôlent la compatibilité des types. Voir **`docs/features/12_container_deconditioning_workflow.md`**.
+
 ### Ouverture et cartes révélées
 
 ```python

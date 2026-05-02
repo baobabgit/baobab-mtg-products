@@ -63,6 +63,15 @@ Une display ouverte pour sortir ses boosters est déconditionnée. Un booster ou
 - Le déconditionnement ne déclenche pas la traçabilité des cartes révélées.
 - Les enfants sont consultables dans la vue structurelle du parent.
 - Les événements de déconditionnement sont visibles dans la timeline métier.
+
+## Scénario display → 15 boosters (boucle d’enregistrement)
+
+1. Enregistrer la display (scan commercial ou création d’instance) ; disposer des références catalogue pour la display et pour le play booster contenu.
+2. Construire une :class:`~baobab_mtg_products.domain.deconditioning.decondition_container_command.DeconditionContainerCommand` avec l’identifiant interne de la display et **quinze** :class:`~baobab_mtg_products.domain.deconditioning.decondition_child_specification.DeconditionChildSpecification` en mode création (`reference_id` du booster), kind ``DISPLAY_CONTAINS_BOOSTER``, codes internes optionnels uniques par booster si déjà suivis en stock.
+3. Exécuter :class:`~baobab_mtg_products.use_cases.deconditioning.decondition_container_use_case.DeconditionContainerUseCase` : pour chaque enfant, création d’instance puis rattachement sous la display ; le contenant passe en ``ProductStatus.DECONDITIONED`` ; un événement ``CONTAINER_DECONDITIONED`` est journalisé **une fois** avec le nombre d’enfants traités.
+4. Pour **chaque** booster ainsi créé, la boucle métier habituelle peut ensuite reprendre indépendamment : scan interne, code de production, rattachement à un autre parent si besoin, éventuel autre déconditionnement, puis ouverture pour cartes (workflow distinct).
+
+Ce flux ne réalise ni ouverture scellée pour cartes ni révélation ; il matérialise uniquement la sortie physique des sous-produits du contenant.
 ## Contraintes de développement à respecter
 
 La feature doit impérativement respecter les règles suivantes :
