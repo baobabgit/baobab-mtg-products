@@ -2,6 +2,22 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-05-02 23:30:00 — release 2.4.0 (pré-publication)
+
+### Modifications
+
+- **`pyproject.toml`** **2.4.0** ; repli **`__version__`** dans **`baobab_mtg_products.__init__`** ; test **`test_init`** aligné.
+- **`CHANGELOG.md`** : entrée **[2.4.0]** (contenu issu de l’ancien **[Unreleased]** : persistance, pylint **`tests.support`**, doc sécurité adaptateurs) ; section **[Unreleased]** vidée.
+- **`README.md`** : rappel **2.4.0** dans le paragraphe qualité / release.
+
+### Buts
+
+- Préparer une publication PyPI cohérente SemVer et checklist **`docs/RELEASE.md`**.
+
+### Impact
+
+- Consommateurs : même API publique ; durcissement documentaire et outillage de test **`tests.support`**.
+
 ## 2026-05-02 22:00:00 — docs sécurité feature 13_persistence_contracts_database_insertion
 
 ### Modifications

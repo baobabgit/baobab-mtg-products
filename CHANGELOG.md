@@ -6,13 +6,19 @@ Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/
 
 ## [Unreleased]
 
+## [2.4.0] - 2026-05-02
+
+### Summary
+
+Version **mineure** : **contrats de persistance** affinés sur les ports références / instances, **doubles mémoire** de test sous **`tests/support/`**, et documentation **sécurité / intégrité** pour les futurs adaptateurs SQL.
+
 ### Added
 
 - Tests de contrat **persistance** (ports références / instances) avec doubles **`tests/support/in_memory_product_repositories.py`** ; scénarios insert→read mémoire et vue structurelle ; garde-fou **`pyproject.toml`** sans dépendance runtime SQL.
 
 ### Changed
 
-- **`pyproject.toml`** : **`pythonpath`** pytest étendu avec **`.`** pour importer **`tests.support`**.
+- **`pyproject.toml`** : **`pythonpath`** pytest étendu avec **`.`** pour importer **`tests.support`** ; **`init-hook`** pylint pour résoudre les imports **`tests.support.*`** dans la CI locale.
 
 ### Documentation
 

@@ -233,7 +233,7 @@ from baobab_mtg_products.domain.products import InternalProductId
 
 ## Qualité, couverture et release
 
-La **2.0.0** introduit la séparation **`ProductReference`** / **`ProductInstance`** (voir `CHANGELOG.md`). Les versions **1.x** restent documentées dans l’historique du changelog ; consulter `docs/RELEASE.md` avant publication.
+La **2.0.0** introduit la séparation **`ProductReference`** / **`ProductInstance`** ; la **2.4.0** formalise les **contrats de persistance** (ports, doubles **`tests.support`**) et la doc **sécurité des adaptateurs SQL** (voir `CHANGELOG.md`). Les versions **1.x** restent dans l’historique du changelog ; consulter `docs/RELEASE.md` avant publication.
 
 Une chaîne équivalente aux commandes ci-dessous est exécutée sur **push** et **pull_request** via **GitHub Actions** (`.github/workflows/ci.yml`), pour les versions de Python annoncées dans `pyproject.toml`.
 

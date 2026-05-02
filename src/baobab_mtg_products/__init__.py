@@ -3,7 +3,7 @@
 Cette librairie modélise le cycle de vie des produits scellés (enregistrement,
 relations parent/enfant, ouverture, traçabilité) sans couplage HTTP, UI,
 moteur de règles ni deckbuilding. La surface exportée par ce module est
-volontairement documentée par version semver (**2.3** : déconditionnement de contenants).
+volontairement documentée par version semver (**2.4** : contrats de persistance et doubles mémoire).
 
 **API publique recommandée** — importer depuis ce package :
 
@@ -109,7 +109,7 @@ from baobab_mtg_products.use_cases.registration import (
 try:
     __version__: str = version("baobab-mtg-products")
 except PackageNotFoundError:
-    __version__ = "2.3.0"
+    __version__ = "2.4.0"
 
 __all__ = [
     "AssignProductionCodeToProductInstanceUseCase",
