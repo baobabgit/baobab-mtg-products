@@ -1,7 +1,8 @@
 """Tests pour RegisterProductByInternalScanUseCase."""
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.registration.registration_scan_result import (
@@ -17,6 +18,10 @@ from baobab_mtg_products.use_cases.registration.register_product_by_internal_sca
 
 class TestRegisterProductByInternalScanUseCase:
     """Délégation vers le runner d'enregistrement."""
+
+    def test_internal_use_case_delegates_to_runner(self) -> None:
+        """Plan 11 §13 — délégation stricte au runner."""
+        self.test_execute_forwards_to_runner()
 
     def test_execute_forwards_to_runner(self) -> None:
         """Les paramètres sont transmis au runner injecté."""

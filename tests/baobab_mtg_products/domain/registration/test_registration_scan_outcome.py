@@ -21,6 +21,10 @@ class TestRegistrationScanOutcome:
         )
         assert RegistrationScanOutcome.INTERNAL_BARCODE_UNKNOWN.value == "internal_barcode_unknown"
 
+    def test_registration_scan_outcome_values_are_stable(self) -> None:
+        """Plan 11 — chaînes d’énumération figées pour l’API et les journaux."""
+        self.test_enum_string_values_stable()
+
     def test_all_members_have_distinct_values(self) -> None:
         """Aucune collision de valeur entre membres de l'énumération."""
         values = [member.value for member in RegistrationScanOutcome]

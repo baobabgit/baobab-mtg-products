@@ -64,6 +64,20 @@ class _Resolution:
 class TestResolveProductReferenceFromCommercialBarcodeUseCase:
     """Résolution EAN sans création d'instance."""
 
+    def test_resolve_commercial_barcode_returns_persistent_reference_when_found(self) -> None:
+        """Plan 11 §14 — référence persistée prioritaire."""
+        self.test_returns_persistent_reference_when_ean_known()
+
+    def test_resolve_commercial_barcode_returns_catalog_template_when_no_reference_exists(
+        self,
+    ) -> None:
+        """Plan 11 §14 — gabarit catalogue si dépôt vide."""
+        self.test_returns_catalog_stub_when_not_in_repository()
+
+    def test_resolve_commercial_barcode_propagates_ambiguous_catalog_error(self) -> None:
+        """Plan 11 §14 — ambiguïté non masquée."""
+        self.test_ambiguous_catalog_raises()
+
     def test_returns_persistent_reference_when_ean_known(self) -> None:
         """EAN déjà lié à une référence persistée."""
         ref = ProductReference(

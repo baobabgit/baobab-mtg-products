@@ -21,3 +21,11 @@ class TestResolvedFromScan:
         assert ResolvedFromScan(ProductType.BUNDLE, None).is_complete is False
         assert ResolvedFromScan(None, MtgSetCode("FDN")).is_complete is False
         assert ResolvedFromScan(None, None).is_complete is False
+
+    def test_is_incomplete_when_type_missing(self) -> None:
+        """Plan 11 — set connu sans type : résolution incomplète (qualification pending)."""
+        assert ResolvedFromScan(None, MtgSetCode("FDN")).is_complete is False
+
+    def test_is_incomplete_when_set_missing(self) -> None:
+        """Plan 11 — type connu sans set : résolution incomplète."""
+        assert ResolvedFromScan(ProductType.BUNDLE, None).is_complete is False

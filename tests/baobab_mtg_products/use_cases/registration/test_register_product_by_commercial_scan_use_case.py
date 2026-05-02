@@ -19,6 +19,10 @@ from baobab_mtg_products.use_cases.registration import (
 class TestRegisterProductByCommercialScanUseCase:
     """Délégation vers le runner d'enregistrement."""
 
+    def test_commercial_use_case_delegates_to_runner(self) -> None:
+        """Plan 11 §13 — délégation stricte au runner (pas de logique dupliquée)."""
+        self.test_execute_forwards_to_runner()
+
     def test_execute_forwards_to_runner(self) -> None:
         """Les paramètres sont transmis au runner injecté."""
         runner = MagicMock()
