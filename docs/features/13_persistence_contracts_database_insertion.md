@@ -74,11 +74,13 @@ Aucune contrainte `UNIQUE` ne doit être posée sur `production_code`.
 
 ## Livrables attendus
 
-- Ports de persistance clarifiés.
-- Doubles mémoire de test si nécessaire.
-- Tests de contrat.
-- Documentation SQL indicative.
-- Exemples d’adaptateur applicatif minimal si cela reste hors runtime.
+- Ports de persistance clarifiés (docstrings `ProductReferenceRepositoryPort`, `ProductRepositoryPort`).
+- Doubles mémoire de test : module **`tests/support/in_memory_product_repositories.py`** (`InMemoryProductReferenceRepository`, `InMemoryProductRepository`).
+- Tests de contrat sous **`tests/baobab_mtg_products/ports/`** (référence, instance, scénarios insert→read, vue structurelle, absence de dépendance DB runtime dans **`pyproject.toml`**).
+- Documentation SQL indicative (inchangée dans son principe : schéma non normatif).
+- Aucun adaptateur SQL dans le package runtime ; l’application fournit l’implémentation concrète.
+
+La configuration **`[tool.pytest.ini_options] pythonpath`** inclut la racine du dépôt (`.` ) pour importer **`tests.support`** sans variable d’environnement ad hoc.
 
 ## Critères d'acceptation
 

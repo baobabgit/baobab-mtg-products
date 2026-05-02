@@ -10,7 +10,12 @@ from baobab_mtg_products.domain.products.production_code import ProductionCode
 
 
 class ProductRepositoryPort(Protocol):
-    """Contrat minimal pour stocker et retrouver des :class:`ProductInstance`."""
+    """Contrat minimal pour stocker et retrouver des :class:`ProductInstance`.
+
+    Ce port couvre exclusivement les **instances physiques**. Les références catalogue sont gérées
+    par ``ProductReferenceRepositoryPort`` (module ``product_reference_repository_port``).
+    Il n’y a pas de recherche par code-barres commercial ici : l’EAN n’identifie pas un exemplaire.
+    """
 
     def find_by_id(self, product_id: InternalProductId) -> Optional[ProductInstance]:
         """Retourne le produit par identifiant interne.

@@ -4,6 +4,16 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [Unreleased]
+
+### Added
+
+- Tests de contrat **persistance** (ports références / instances) avec doubles **`tests/support/in_memory_product_repositories.py`** ; scénarios insert→read mémoire et vue structurelle ; garde-fou **`pyproject.toml`** sans dépendance runtime SQL.
+
+### Changed
+
+- **`pyproject.toml`** : **`pythonpath`** pytest étendu avec **`.`** pour importer **`tests.support`**.
+
 ## [2.3.0] - 2026-05-02
 
 ### Summary
