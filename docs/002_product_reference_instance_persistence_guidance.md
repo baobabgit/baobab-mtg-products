@@ -130,6 +130,8 @@ CREATE INDEX idx_product_instances_parent_id
     ON mtg_product_instances(parent_id);
 ```
 
+Les scripts ci-dessus sont **indicatifs** : types SQL, contraintes nommées et index sont à adapter au SGBD et au schéma réel.
+
 ## 7. Critères de validation pour l’IA de développement
 
 L’agent de développement doit ajouter ou adapter des tests prouvant que :
@@ -142,3 +144,20 @@ L’agent de développement doit ajouter ou adapter des tests prouvant que :
 - une display peut être déconditionnée en boosters ;
 - un booster peut être ouvert et rattacher des cartes révélées ;
 - les ports de persistance peuvent être implémentés sans dépendance imposée dans le cœur métier.
+
+## 8. Sécurité et intégrité des futurs adaptateurs de persistance
+
+Le package **ne fournit aucun adaptateur SQL** : le cœur métier s’appuie sur des **`Protocol`** ; l’implémentation concrète (SQLite, PostgreSQL, ORM, etc.) relève **exclusivement** de l’application consommatrice.
+
+1. **Schémas** : les exemples SQL de cette note et de la feature **13** sont **non normatifs** ; ils illustrent une cartographie possible domaine ↔ colonnes.
+2. **Requêtes paramétrées** : les adaptateurs SQL doivent utiliser des **requêtes paramétrées** (bind parameters), pas l’assemblage de chaînes SQL.
+3. **Injection** : aucune valeur issue d’un **scan**, d’un **nom produit**, d’un **code interne**, d’un **code de production** ou d’un **code-barres commercial** ne doit être concaténée ou interpolée dans du SQL brut.
+4. **`internal_barcode`** : lorsqu’il est renseigné, une implémentation saine impose l’**unicité** (contrainte `UNIQUE` ou équivalent applicatif), alignée sur le domaine.
+5. **`find_by_internal_barcode`** : si la base contient **plusieurs** lignes pour un même code interne (données corrompues ou migration incomplète), l’adaptateur **ne doit pas** en choisir une silencieusement : lever une **erreur explicite** ou définir une stratégie de réparation documentée.
+6. **Écriture** : en cas de tentative de doublon sur code interne, **rejeter** la transaction ou lever une erreur métier / d’intégrité explicite.
+7. **`commercial_barcode` (EAN)** : si l’application applique la règle **« au plus une référence par EAN »**, elle doit l’**appliquer en persistance** (`UNIQUE` sur la colonne ou table de mapping dédiée, ou contrôle applicatif équivalent). Voir aussi la documentation sécurité feature **09** sur l’absence de choix arbitraire en cas de doublon.
+8. **Données historiques** : les doublons déjà présents doivent être traités par **migration**, **nettoyage** ou **erreur d’intégrité** explicite avant de reprendre un flux nominal.
+9. **`image_uri`** : donnée descriptive **non fiable** ; pas de **fetch serveur** sans garde-fous (**SSRF**, ressources externes non maîtrisées) — responsabilité applicative.
+10. **Affichage** : les champs exposés en **UI** doivent être **échappés** ou rendus via des mécanismes sûrs côté application consommatrice.
+
+Les doubles mémoire **`tests/support/in_memory_product_repositories.py`** illustrent des politiques strictes (ex. rejet de doublon EAN entre références, **`DuplicateInternalBarcodeError`** à l’enregistrement) ; un adaptateur SQL doit définir ses propres garanties équivalentes.

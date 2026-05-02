@@ -14,6 +14,10 @@ Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/
 
 - **`pyproject.toml`** : **`pythonpath`** pytest étendu avec **`.`** pour importer **`tests.support`**.
 
+### Documentation
+
+- **Sécurité et intégrité des futurs adaptateurs de persistance** : `docs/002_product_reference_instance_persistence_guidance.md` (§ 8), `docs/features/13_persistence_contracts_database_insertion.md` ; rappel **`README`** — aucun adaptateur SQL dans le package runtime, obligations applicatives (requêtes paramétrées, unicité **`internal_barcode`**, pas de choix arbitraire sur doublons, EAN, SSRF / **`image_uri`**, échappement UI).
+
 ## [2.3.0] - 2026-05-02
 
 ### Summary

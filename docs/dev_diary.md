@@ -2,6 +2,23 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-05-02 22:00:00 — docs sécurité feature 13_persistence_contracts_database_insertion
+
+### Modifications
+
+- **`docs/002_product_reference_instance_persistence_guidance.md`** : § 8 **Sécurité et intégrité des futurs adaptateurs de persistance** (schémas indicatifs, SQL paramétré, anti-injection, unicité **`internal_barcode`**, **`find_by_internal_barcode`**, EAN / **`commercial_barcode`**, migrations, **`image_uri`** / SSRF, UI) ; note après schéma § 6.
+- **`docs/features/13_persistence_contracts_database_insertion.md`** : même thème synthétique + renvoi vers **`docs/002`** § 8.
+- **`README.md`** : entrées documentation références / persistance et feature **13** précisées (pas d’adaptateur SQL dans la lib).
+- **`CHANGELOG.md`** **[Unreleased]** : ligne documentation associée.
+
+### Buts
+
+- Lever les réserves sécurité « GO avec réserves » en traçant les obligations applicatives pour les futurs adaptateurs SQL.
+
+### Impact
+
+- Aucun changement du code métier ; réserves restantes : mise en œuvre concrète côté application (politique DB, migrations, garde-fous runtime).
+
 ## 2026-05-02 18:30:00 — feature 13_persistence_contracts_database_insertion (tests & doc)
 
 ### Modifications

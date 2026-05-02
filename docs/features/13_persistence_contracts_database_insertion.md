@@ -72,6 +72,23 @@ CREATE TABLE mtg_product_instances (
 
 Aucune contrainte `UNIQUE` ne doit être posée sur `production_code`.
 
+## Sécurité et intégrité des futurs adaptateurs de persistance
+
+La librairie **n’embarque aucun adaptateur SQL** ni driver : seuls des **ports** (`Protocol`) et des **doubles mémoire de test** sont fournis. L’insertion et la lecture en base relèvent **entièrement** de l’application consommatrice.
+
+1. **Schémas indicatifs** : le SQL présenté ci-dessus et dans `docs/002_product_reference_instance_persistence_guidance.md` est **illustratif**, pas prescriptif.
+2. **Requêtes paramétrées** : tout adaptateur SQL doit utiliser des **paramètres liés** ; interdire la construction de requêtes par **concaténation** ou **interpolation** de chaînes.
+3. **Données utilisateur / scan** : identifiants scannés, noms, codes internes, codes de production et codes-barres commerciaux ne doivent **jamais** être injectés dans du SQL brut.
+4. **`internal_barcode`** : lorsqu’il existe, il doit rester **unique** dans l’implémentation concrète (contrainte ou logique équivalente).
+5. **`find_by_internal_barcode`** : en cas de **plusieurs** lignes pour un même code interne, **ne pas** choisir arbitrairement une instance ; lever une **erreur explicite** ou appliquer une procédure de réparation documentée.
+6. **Doublon à l’écriture** : bloquer la transaction ou signaler une **erreur d’intégrité** claire si un second exemplaire réutilise un code interne déjà pris.
+7. **`commercial_barcode`** : si la politique métier impose **au plus une référence par EAN**, matérialiser cette règle (`UNIQUE`, table de correspondance, ou contrôle applicatif strict).
+8. **Historique** : doubons préexistants → **migration**, **nettoyage** ou **erreur** avant utilisation nominale.
+9. **`image_uri`** : traiter comme source **non fiable** ; pas de requêtes réseau serveur sans défense **SSRF** et maîtrise des domaines.
+10. **UI** : **échapper** ou rendre de façon sûre les textes et URIs issus du catalogue.
+
+Pour le détail et le lien avec les doubles mémoire **`tests/support/in_memory_product_repositories.py`**, voir aussi **`docs/002_product_reference_instance_persistence_guidance.md`** § 8.
+
 ## Livrables attendus
 
 - Ports de persistance clarifiés (docstrings `ProductReferenceRepositoryPort`, `ProductRepositoryPort`).
