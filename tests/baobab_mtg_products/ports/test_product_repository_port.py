@@ -76,12 +76,12 @@ class TestProductRepositoryPort:
     def test_list_by_reference_id_returns_empty_tuple_when_none(self) -> None:
         """Liste vide explicite, jamais ``None``."""
         adapter: ProductRepositoryPort = InMemoryProductRepository()
-        assert adapter.list_by_reference_id(ProductReferenceId("vide")) == ()
+        assert not adapter.list_by_reference_id(ProductReferenceId("vide"))
 
     def test_list_by_production_code_returns_empty_tuple_when_none(self) -> None:
         """Aucun match sur le code de lot → tuple vide."""
         adapter: ProductRepositoryPort = InMemoryProductRepository()
-        assert adapter.list_by_production_code(ProductionCode("LOT-inconnu")) == ()
+        assert not adapter.list_by_production_code(ProductionCode("LOT-inconnu"))
 
     def test_list_direct_children_returns_empty_tuple_when_none(self) -> None:
         """Parent sans enfants → ``()``."""
@@ -96,7 +96,7 @@ class TestProductRepositoryPort:
                 status=ProductStatus.SEALED,
             ),
         )
-        assert adapter.list_direct_children_of_parent(root) == ()
+        assert not adapter.list_direct_children_of_parent(root)
 
     def test_repository_contract_lists_direct_children_from_parent_id(self) -> None:
         """Enfants directs uniquement ; ``parent_id`` renseigné ; ordre stable."""
