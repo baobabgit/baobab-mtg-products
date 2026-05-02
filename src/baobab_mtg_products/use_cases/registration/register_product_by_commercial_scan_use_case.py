@@ -18,6 +18,11 @@ from baobab_mtg_products.use_cases.use_case import UseCase
 class RegisterProductByCommercialScanUseCase(UseCase[RegistrationScanResult]):
     """Encapsule un scan commercial unique avec overrides optionnels.
 
+    L'EAN résout une référence catalogue ; chaque enregistrement matérialise une
+    nouvelle instance physique, y compris si l'EAN est déjà connu. Pour une résolution
+    référence sans persister d'instance, utiliser
+    ``ResolveProductReferenceFromCommercialBarcodeUseCase``.
+
     :param barcode: Code-barres scanné sur le conditionnement.
     :type barcode: CommercialBarcode
     :param runner: Orchestrateur injecté (dépôt, catalogue, ids, événements).
@@ -46,9 +51,9 @@ class RegisterProductByCommercialScanUseCase(UseCase[RegistrationScanResult]):
         self._product_type_override = product_type_override
 
     def execute(self) -> RegistrationScanResult:
-        """Exécute l'enregistrement ou la simple détection d'un doublon.
+        """Exécute le scan commercial : nouvelle instance et résolution de référence.
 
-        :return: Résultat typé après persistance ou récupération.
+        :return: Résultat typé après persistance (référence dans ``resolved_reference``).
         :rtype: RegistrationScanResult
         """
         return self._runner.register_via_commercial(

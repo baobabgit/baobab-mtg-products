@@ -126,6 +126,7 @@ Les applications implémentent les ports (`ProductRepositoryPort`, `ProductRefer
 from baobab_mtg_products.domain.products import CommercialBarcode
 from baobab_mtg_products.use_cases.registration import (
     RegisterProductByCommercialScanUseCase,
+    RegisterProductByInternalScanUseCase,
     RegistrationFromScanRunner,
 )
 
@@ -134,11 +135,14 @@ from baobab_mtg_products.use_cases.registration import (
 # )
 # use_case = RegisterProductByCommercialScanUseCase(CommercialBarcode("12345678"), runner)
 # result = use_case.execute()
-# # outcomes : existing_product (scan interne), new_known_from_catalog, new_pending_qualification,
+# # outcomes (commercial) : new_known_from_catalog, new_pending_qualification,
 # #           new_instance_shared_reference (nouvel exemplaire, même référence catalogue)
+# # outcomes (interne) : existing_product (instance trouvée), internal_barcode_unknown
 ```
 
-Un même **code-barres commercial** peut désigner une **`ProductReference`** déjà persistée : le flux crée alors une **nouvelle** `ProductInstance` sans bloquer sur un doublon commercial (voir `RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE`). Le code-barres commercial et les métadonnées descriptives (nom, visuel) vivent sur **`ProductReference`** ; l’instance porte `reference_id` et une copie dénormalisée de type / set pour les règles métier existantes.
+Un même **code-barres commercial** peut désigner une **`ProductReference`** déjà persistée : le flux crée alors une **nouvelle** `ProductInstance` sans bloquer sur un doublon commercial (voir `RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE`). Le code-barres commercial et les métadonnées descriptives (nom, visuel) vivent sur **`ProductReference`** ; l’instance porte `reference_id` et une copie dénormalisée de type / set pour les règles métier existantes. Le résultat d’enregistrement expose **`resolved_reference`** (référence alignée) ; l’EAN **ne** correspond **jamais** à un exemplaire unique implicite. Une **ambiguïté** catalogue sur l’EAN se traduit par une levée d’**`AmbiguousBarcodeResolutionError`**. Pour une **résolution référence seule** (sans persister d’instance), utiliser **`ResolveProductReferenceFromCommercialBarcodeUseCase`** avec **`CommercialReferenceResolutionResult`**.
+
+**Scan interne** : pour le scan interne, un code **invalide** est rejeté lors de la construction du value object **`InternalBarcode`** (`InvalidInternalBarcodeError`). Le cas d’usage **`RegisterProductByInternalScanUseCase`** reçoit donc un **`InternalBarcode`** déjà valide. Un code interne **valide mais inconnu** produit l’issue **`INTERNAL_BARCODE_UNKNOWN`** avec `product is None`. Un code **connu** retrouve l’instance exacte (`EXISTING_PRODUCT`). Les cas d’usage d’enregistrement par scan ne sont pas réexportés à la racine du package : importer depuis **`baobab_mtg_products.use_cases.registration`** (voir aussi `docs/features/11_commercial_and_internal_scan_workflow_refactor.md`).
 
 ### Création explicite d’instance et code de production
 

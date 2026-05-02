@@ -4,6 +4,22 @@ Tous les changements notables de ce projet seront documentés dans ce fichier.
 
 Le format s’inspire de [Keep a Changelog](https://keepachangelog.com/fr/1.0.0/), et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [2.2.0] - 2026-05-01
+
+### Summary
+
+Version **mineure** : refonte explicite des workflows **scan commercial** (EAN → référence, jamais clé d’unicité d’exemplaire) et **scan interne** (clé vers une instance ou issue **inconnue** sans matérialisation catalogue).
+
+### Added
+
+- **`CommercialReferenceResolutionResult`** et **`ResolveProductReferenceFromCommercialBarcodeUseCase`** : résolution EAN → référence sans créer d’instance.
+- **`RegistrationScanOutcome.INTERNAL_BARCODE_UNKNOWN`** ; champ **`resolved_reference`** documenté sur **`RegistrationScanResult`**.
+
+### Changed
+
+- **`RegistrationFromScanRunner.register_via_internal`** : code interne inconnu → ``product is None`` et issue explicite ; plus de création implicite via ``resolve_internal``.
+- **`register_via_commercial`** : renseigne systématiquement **`resolved_reference`** lorsque la référence catalogue est connue (réutilisée ou créée).
+
 ## [2.1.0] - 2026-05-01
 
 ### Summary

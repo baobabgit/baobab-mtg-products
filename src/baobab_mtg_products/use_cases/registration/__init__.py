@@ -8,10 +8,14 @@ from .register_product_by_internal_scan_use_case import (
     RegisterProductByInternalScanUseCase,
 )
 from .registration_from_scan_runner import RegistrationFromScanRunner
+from .resolve_product_reference_from_commercial_barcode_use_case import (
+    ResolveProductReferenceFromCommercialBarcodeUseCase,
+)
 
 __all__ = [
     "QualifyScannedProductUseCase",
     "RegisterProductByCommercialScanUseCase",
     "RegisterProductByInternalScanUseCase",
     "RegistrationFromScanRunner",
+    "ResolveProductReferenceFromCommercialBarcodeUseCase",
 ]
