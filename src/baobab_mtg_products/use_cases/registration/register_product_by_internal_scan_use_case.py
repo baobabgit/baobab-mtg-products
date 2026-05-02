@@ -49,9 +49,9 @@ class RegisterProductByInternalScanUseCase(UseCase[RegistrationScanResult]):
         self._product_type_override = product_type_override
 
     def execute(self) -> RegistrationScanResult:
-        """Exécute l'enregistrement ou la simple détection d'un doublon.
+        """Exécute le scan interne : retrouver une instance ou signaler un code inconnu.
 
-        :return: Résultat typé après persistance ou récupération.
+        :return: Résultat typé (exemplaire existant ou issue ``INTERNAL_BARCODE_UNKNOWN``).
         :rtype: RegistrationScanResult
         """
         return self._runner.register_via_internal(

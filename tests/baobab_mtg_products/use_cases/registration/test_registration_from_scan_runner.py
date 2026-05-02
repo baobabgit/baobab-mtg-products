@@ -588,3 +588,107 @@ class TestRegistrationFromScanRunner:
         runner2.register_via_commercial(CommercialBarcode("99999999"))
         assert len(collection.provenance) == 2
         assert collection.provenance[1].internal_product_id == "n2"
+
+    def test_inventory_two_displays_fifteen_boosters_one_bundle(self) -> None:
+        """Inventaire : 2 displays (même EAN), 15 boosters par display, 1 bundle, scan interne.
+
+        Démonstration sans déconditionnement complet : les instances booster sont
+        matérialisées en dépôt avec parent (comme après rattachement structurel). Les
+        scans commerciaux ne fusionnent jamais deux exemplaires ; le bundle est créé par
+        scan commercial sur sa référence déjà catalogue.
+        """
+        repo = _FakeRepo()
+        ref_repo = _FakeRefRepo()
+        events = _FakeEvents()
+        ean_display = CommercialBarcode("4006381333930")
+        ean_bundle = CommercialBarcode("88888888")
+        ref_display = ProductReference(
+            ProductReferenceId("ref-mh3-display"),
+            name="Display MH3",
+            product_type=ProductType.DISPLAY,
+            set_code=MtgSetCode("MH3"),
+            requires_qualification=False,
+            commercial_barcode=ean_display,
+        )
+        ref_booster = ProductReference(
+            ProductReferenceId("ref-mh3-play"),
+            name="Play Booster MH3",
+            product_type=ProductType.PLAY_BOOSTER,
+            set_code=MtgSetCode("MH3"),
+            requires_qualification=False,
+        )
+        ref_bundle = ProductReference(
+            ProductReferenceId("ref-fdn-bundle"),
+            name="Bundle FDN",
+            product_type=ProductType.BUNDLE,
+            set_code=MtgSetCode("FDN"),
+            requires_qualification=False,
+            commercial_barcode=ean_bundle,
+        )
+        ref_repo.save(ref_display)
+        ref_repo.save(ref_booster)
+        ref_repo.save(ref_bundle)
+        resolution = _FakeResolution(
+            ResolvedFromScan(None, None),
+            ResolvedFromScan(None, None),
+        )
+        runner = _runner(
+            repo,
+            ref_repo,
+            resolution,
+            ["disp-1", "disp-2", "bundle-scan", "disp-3"],
+            [],
+            events,
+        )
+        r_disp_a = runner.register_via_commercial(ean_display)
+        r_disp_b = runner.register_via_commercial(ean_display)
+        assert r_disp_a.outcome is RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE
+        assert r_disp_b.outcome is RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE
+        assert r_disp_a.product is not None and r_disp_b.product is not None
+        assert r_disp_a.product.internal_id.value != r_disp_b.product.internal_id.value
+        assert r_disp_a.resolved_reference is r_disp_b.resolved_reference is ref_display
+        displays = repo.list_by_reference_id(ref_display.reference_id)
+        assert len(displays) == 2
+        parent_a = r_disp_a.product.internal_id
+        parent_b = r_disp_b.product.internal_id
+        for d_idx, parent in enumerate((parent_a, parent_b), start=1):
+            for k in range(1, 16):
+                internal = InternalBarcode(f"INT-MH3-D{d_idx}-PB-{k:02d}")
+                booster = ProductInstance(
+                    internal_id=InternalProductId(f"boost-d{d_idx}-{k:02d}"),
+                    reference_id=ref_booster.reference_id,
+                    product_type=ProductType.PLAY_BOOSTER,
+                    set_code=MtgSetCode("MH3"),
+                    status=ProductStatus.SEALED,
+                    internal_barcode=internal,
+                    parent_id=parent,
+                )
+                repo.save(booster)
+        r_bundle = runner.register_via_commercial(ean_bundle)
+        assert r_bundle.outcome is RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE
+        assert r_bundle.resolved_reference is ref_bundle
+        assert r_bundle.product.internal_id.value == "bundle-scan"
+        assert len(repo.list_by_reference_id(ref_booster.reference_id)) == 30
+        assert len(repo.list_by_reference_id(ref_bundle.reference_id)) == 1
+        assert len(repo.list_direct_children_of_parent(parent_a)) == 15
+        assert len(repo.list_direct_children_of_parent(parent_b)) == 15
+        ghost_display = ProductInstance(
+            internal_id=InternalProductId("pre-existing-display"),
+            reference_id=ref_display.reference_id,
+            product_type=ProductType.DISPLAY,
+            set_code=MtgSetCode("MH3"),
+            status=ProductStatus.SEALED,
+        )
+        repo.save(ghost_display)
+        r_after_ghost = runner.register_via_commercial(ean_display)
+        assert r_after_ghost.product.internal_id.value == "disp-3"
+        assert r_after_ghost.product.internal_id.value != ghost_display.internal_id.value
+        assert r_after_ghost.outcome is RegistrationScanOutcome.NEW_INSTANCE_SHARED_REFERENCE
+        probe = runner.register_via_internal(InternalBarcode("INT-MH3-D1-PB-08"))
+        assert probe.outcome is RegistrationScanOutcome.EXISTING_PRODUCT
+        assert probe.product is not None
+        assert probe.product.internal_id.value == "boost-d1-08"
+        assert probe.resolved_reference == ref_booster
+        unknown = runner.register_via_internal(InternalBarcode("INT-NEVER-STORED-99"))
+        assert unknown.outcome is RegistrationScanOutcome.INTERNAL_BARCODE_UNKNOWN
+        assert unknown.product is None

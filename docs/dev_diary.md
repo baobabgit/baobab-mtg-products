@@ -2,6 +2,17 @@
 
 Les entrées sont classées par **date et heure décroissantes** (les plus récentes en premier).
 
+## 2026-05-01 22:00:00 — correction QA feature 11 (scan commercial / interne)
+
+### Modifications
+
+- Restauration des tests workflow `test_registration_from_scan_runner_contract_negatives` ; correction **flake8 F841** ; test d’inventaire **2 displays × 15 boosters + bundle** enrichi (pas de réutilisation silencieuse d’instance sur EAN).
+- Test **`RegisterProductByInternalScanUseCase`** : rejet du code interne invalide **avant** le runner ; documentation **README** + **`docs/features/11_commercial_and_internal_scan_workflow_refactor.md`**.
+
+### Buts
+
+- Lever les réserves QA (arbre propre, qualité verte, scénario métier verrouillé).
+
 ## 2026-05-01 20:30:00 — feature 11_commercial_and_internal_scan_workflow_refactor
 
 ### Modifications

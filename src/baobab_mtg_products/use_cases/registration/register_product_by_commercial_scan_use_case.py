@@ -51,9 +51,9 @@ class RegisterProductByCommercialScanUseCase(UseCase[RegistrationScanResult]):
         self._product_type_override = product_type_override
 
     def execute(self) -> RegistrationScanResult:
-        """Exécute l'enregistrement ou la simple détection d'un doublon.
+        """Exécute le scan commercial : nouvelle instance et résolution de référence.
 
-        :return: Résultat typé après persistance ou récupération.
+        :return: Résultat typé après persistance (référence dans ``resolved_reference``).
         :rtype: RegistrationScanResult
         """
         return self._runner.register_via_commercial(

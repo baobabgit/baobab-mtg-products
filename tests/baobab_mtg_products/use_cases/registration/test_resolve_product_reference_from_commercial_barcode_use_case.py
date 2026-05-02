@@ -2,6 +2,8 @@
 
 from typing import Optional
 
+import pytest
+
 from baobab_mtg_products.domain.products.commercial_barcode import CommercialBarcode
 from baobab_mtg_products.domain.products.internal_barcode import InternalBarcode
 from baobab_mtg_products.domain.products.mtg_set_code import MtgSetCode
@@ -9,6 +11,9 @@ from baobab_mtg_products.domain.products.product_reference import ProductReferen
 from baobab_mtg_products.domain.products.product_reference_id import ProductReferenceId
 from baobab_mtg_products.domain.products.product_type import ProductType
 from baobab_mtg_products.domain.registration.resolved_from_scan import ResolvedFromScan
+from baobab_mtg_products.exceptions.registration.ambiguous_barcode_resolution_error import (
+    AmbiguousBarcodeResolutionError,
+)
 from baobab_mtg_products.use_cases.registration import (
     ResolveProductReferenceFromCommercialBarcodeUseCase,
 )
@@ -39,12 +44,15 @@ class _RefRepo:
 class _Resolution:
     """Double résolution catalogue."""
 
-    def __init__(self, resolved: ResolvedFromScan) -> None:
+    def __init__(self, resolved: ResolvedFromScan, *, raise_ambiguous: bool = False) -> None:
         self._resolved = resolved
+        self._raise_ambiguous = raise_ambiguous
 
     def resolve_commercial(self, barcode: CommercialBarcode) -> ResolvedFromScan:
         """Voir :class:`BarcodeResolutionPort`."""
         del barcode
+        if self._raise_ambiguous:
+            raise AmbiguousBarcodeResolutionError("Plusieurs références catalogue possibles.")
         return self._resolved
 
     def resolve_internal(self, barcode: InternalBarcode) -> ResolvedFromScan:
@@ -91,3 +99,14 @@ class TestResolveProductReferenceFromCommercialBarcodeUseCase:
         assert not out.has_persistent_reference
         assert out.reference_from_repository is None
         assert out.catalog_resolution == catalog
+
+    def test_ambiguous_catalog_raises(self) -> None:
+        """L'ambiguïté catalogue n'est pas masquée : propagation de l'exception métier."""
+        ref_repo = _RefRepo()
+        uc = ResolveProductReferenceFromCommercialBarcodeUseCase(
+            CommercialBarcode("33333333"),
+            ref_repo,
+            _Resolution(ResolvedFromScan(None, None), raise_ambiguous=True),
+        )
+        with pytest.raises(AmbiguousBarcodeResolutionError):
+            uc.execute()
