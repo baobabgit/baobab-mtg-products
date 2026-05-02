@@ -15,8 +15,10 @@ from baobab_mtg_products.domain.products.product_reference_id import ProductRefe
 from baobab_mtg_products.domain.products.relationships.product_relationship_kind import (
     ProductRelationshipKind,
 )
-import baobab_mtg_products.exceptions.deconditioning.decondition_container_empty_children_error as _dce  # noqa: E501
-import baobab_mtg_products.exceptions.deconditioning.invalid_decondition_child_specification_error as _ice  # noqa: E501
+from baobab_mtg_products.exceptions.deconditioning import (
+    decondition_container_empty_children_error as _dce,
+    invalid_decondition_child_specification_error as _ice,
+)
 
 
 def test_command_rejects_empty_children_when_required() -> None:

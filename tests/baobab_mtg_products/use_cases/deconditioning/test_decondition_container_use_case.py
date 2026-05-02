@@ -25,8 +25,10 @@ from baobab_mtg_products.domain.products.production_code import ProductionCode
 from baobab_mtg_products.domain.products.relationships.product_relationship_kind import (
     ProductRelationshipKind,
 )
-import baobab_mtg_products.exceptions.deconditioning.container_already_deconditioned_error as _cad
-import baobab_mtg_products.exceptions.deconditioning.product_not_deconditionable_container_error as _pnd  # noqa: E501
+from baobab_mtg_products.exceptions.deconditioning import (
+    container_already_deconditioned_error as _cad,
+    product_not_deconditionable_container_error as _pnd,
+)
 from baobab_mtg_products.exceptions.product.duplicate_internal_barcode_error import (
     DuplicateInternalBarcodeError,
 )
@@ -125,7 +127,6 @@ class _RefRepo:
     ) -> Optional[ProductReference]:
         """Voir :class:`ProductReferenceRepositoryPort`."""
         del barcode
-        return None
 
     def save(self, reference: ProductReference) -> None:
         """Voir :class:`ProductReferenceRepositoryPort`."""
@@ -580,8 +581,8 @@ class TestDeconditionContainerUseCase:
         )
         cmd = DeconditionContainerCommand(InternalProductId("d8"), specs)
         DeconditionContainerUseCase(cmd, repo, ref_repo, _IdFactory(["c1"]), events).execute()
-        assert events.card_revealed == []
-        assert events.opening_scan == []
+        assert not events.card_revealed
+        assert not events.opening_scan
 
     def test_container_decondition_event_recorded(self) -> None:
         """Événement déconditionnement traceable."""

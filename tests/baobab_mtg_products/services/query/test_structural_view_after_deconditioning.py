@@ -47,7 +47,6 @@ class _Repo:
     ) -> Optional[ProductInstance]:
         """Voir :class:`ProductRepositoryPort`."""
         del barcode
-        return None
 
     def save(self, product: ProductInstance) -> None:
         """Voir :class:`ProductRepositoryPort`."""
@@ -100,7 +99,6 @@ class _RefRepo:
     ) -> Optional[ProductReference]:
         """Voir :class:`ProductReferenceRepositoryPort`."""
         del barcode
-        return None
 
     def save(self, reference: ProductReference) -> None:
         """Voir :class:`ProductReferenceRepositoryPort`."""
